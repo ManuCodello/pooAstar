@@ -13,7 +13,7 @@
         <h1 class="text-4xl font-bold text-center text-blue-600 mb-6">Algoritmo A* en JavaScript</h1>
 
     <!-- Contenedor para el grid -->
-    <div id="grid-container" class="grid grid-cols-10 gap-1">
+    <div id="gridContainer" class="grid grid-cols-10 gap-1">
         <!-- Las celdas se inyectan desde render.js -->
     </div>
 
@@ -24,8 +24,10 @@
         <button id="botonGenerarMatriz" class="bg-green-500 text-white px-4 py-1 rounded hover:bg-green-600">
             Generar Grid
         </button>
-
-</div>
+        <button id="reiniciarGrid" class="bg-red-500 text-white px-4 py-1 rounded hover:bg-red-600">
+            Reiniciar Grid
+        </button>
+    </div>
 
         <!-- Resultado -->
         <p id="resultado" class="text-center text-lg mt-4 text-gray-700"></p>
