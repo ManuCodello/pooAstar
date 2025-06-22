@@ -1,0 +1,31 @@
+/* Acá podés extender estilos Tailwind si querés */
+
+body {
+  /* Fallback si Tailwind no carga */
+    background-color: #f7fafc;
+}
+
+/* Estilo por defecto de las celdas */
+.celda {
+    width: 32px;
+    height: 32px;
+    background-color: #e2e8f0;
+    border: 1px solid #cbd5e0;
+    transition: background-color 0.2s;
+}
+
+.celda.camino {
+    background-color: #38bdf8;
+}
+
+.celda.muro {
+    background-color: #1e293b;
+}
+
+.celda.inicio {
+    background-color: #22c55e;
+}
+
+.celda.fin {
+    background-color: #ef4444;
+}

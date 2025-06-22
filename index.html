@@ -1,0 +1,36 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Manu Maps</title>
+    <link href="https://cdn.jsdelivr.net/npm/tailwindcss@3.3.2/dist/tailwind.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="style.css">
+</head>
+<body class="bg-gray-100 p-6 font-sans">
+
+    <div class="max-w-4xl mx-auto">
+        <h1 class="text-4xl font-bold text-center text-blue-600 mb-6">Algoritmo A* en JavaScript</h1>
+
+    <!-- Contenedor para el grid -->
+    <div id="grid-container" class="grid grid-cols-10 gap-1">
+        <!-- Las celdas se inyectan desde render.js -->
+    </div>
+
+    <!-- Controles -->
+    <div class="flex gap-4 mt-6 justify-center">
+        <input type="number" id="inputFilas" placeholder="Filas" class="border px-2 py-1 rounded w-24">
+        <input type="number" id="inputColumnas" placeholder="Columnas" class="border px-2 py-1 rounded w-24">
+        <button id="botonGenerarMatriz" class="bg-green-500 text-white px-4 py-1 rounded hover:bg-green-600">
+            Generar Grid
+        </button>
+
+</div>
+
+        <!-- Resultado -->
+        <p id="resultado" class="text-center text-lg mt-4 text-gray-700"></p>
+    </div>
+
+<script src="script.js" type="module"></script>
+</body>
+</html>
