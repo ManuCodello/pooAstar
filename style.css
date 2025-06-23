@@ -7,28 +7,39 @@ body {
 #gridContainer {
 	display: grid;
 }
-
 .celda {
 	width: 32px;
 	height: 32px;
-	box-sizing: border-box;
-	background-color: #e2e8f0;
-	border: 1px solid #cbd5e0;
-	transition: background-color 0.2s;
+	border: 1px solid #d1d5db;
+	box-shadow: inset 0 0 2px rgba(0, 0, 0, 0.1);
+	transition: background-color 0.2s ease;
 }
 
-.celda.camino {
-	background-color: #38bdf8;
+/* Tipos de celda */
+[data-tipo="camino"] {
+	background-color: #e5e7eb; /* Tailwind gray-200 */
 }
 
-.celda.muro {
-	background-color: #1e293b;
+[data-tipo="manzana"] {
+	background-color: #1f2937;
+			background-image: repeating-linear-gradient(
+				45deg,
+				#1f2937,
+				#1f2937 4px,
+				#374151 4px,
+				#374151 8px
+			);
 }
 
-.celda.inicio {
-	background-color: #22c55e;
+
+[data-tipo="inicio"] {
+	background-color: #3b82f6; /* Tailwind blue-500 */
 }
 
-.celda.fin {
-	background-color: #ef4444;
+[data-tipo="fin"] {
+	background-color: #a855f7; /* Tailwind purple-500 */
+}
+
+[data-tipo="obstaculo"] {
+	background-color: #374151; /* Tailwind gray-700 */
 }
