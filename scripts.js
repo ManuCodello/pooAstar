@@ -11,8 +11,12 @@
 // 5. Validar que haya inicio, fin y que no esté bloqueado el camino
 
 // scripts.js
-
-import { generarGrid, reiniciarTransform, inicializarZoomPan } from './render.js';
+import {
+	generarGrid,
+	reiniciarTransform,
+	inicializarZoomPan,
+	generarManzanas
+} from './render.js';
 
 const inputFilas = document.getElementById("inputFilas");
 const inputColumnas = document.getElementById("inputColumnas");
@@ -20,6 +24,10 @@ const botonGenerarMatriz = document.getElementById("botonGenerarMatriz");
 const botonReiniciar = document.getElementById("reiniciarGrid");
 const gridContainer = document.getElementById("gridContainer");
 
+let matriz = []; 
+
+
+// Reiniciar matriz y zoom
 function reiniciarGrid() {
 	gridContainer.innerHTML = "";
 	reiniciarTransform();
@@ -27,6 +35,7 @@ function reiniciarGrid() {
 
 botonReiniciar.addEventListener("click", reiniciarGrid);
 
+// Generar matriz al hacer click
 botonGenerarMatriz.addEventListener("click", () => {
 	const filas = parseInt(inputFilas.value);
 	const columnas = parseInt(inputColumnas.value);
@@ -36,9 +45,13 @@ botonGenerarMatriz.addEventListener("click", () => {
 		return;
 	}
 
-	generarGrid(filas, columnas);
+	reiniciarGrid(); // Limpia el DOM antes
+	matriz = generarGrid(filas, columnas, gridContainer); // ✅ guarda la matriz devuelta
+	generarManzanas(matriz, filas, columnas); // 🧱 pinta obstáculos
 });
 
+
+// Generar matriz al apretar Enter en inputs
 [inputFilas, inputColumnas].forEach(input => {
 	input.addEventListener("keydown", (e) => {
 		if (e.key === "Enter") {
@@ -47,5 +60,8 @@ botonGenerarMatriz.addEventListener("click", () => {
 	});
 });
 
+// Inicializa zoom y pan una vez
 inicializarZoomPan();
+
+
 

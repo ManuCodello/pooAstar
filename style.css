@@ -11,6 +11,7 @@ body {
 .celda {
 	width: 32px;
 	height: 32px;
+	box-sizing: border-box;
 	background-color: #e2e8f0;
 	border: 1px solid #cbd5e0;
 	transition: background-color 0.2s;
