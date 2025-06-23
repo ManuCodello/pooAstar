@@ -10,25 +10,42 @@
 // 4. Mostrar mensajes al usuario en el <p id="resultado">
 // 5. Validar que haya inicio, fin y que no esté bloqueado el camino
 
-const inputFilas = document.getElementById('inputFilas');
-const inputColumnas = document.getElementById('inputColumnas');
-const botonGenerarMatriz = document.getElementById('botonGenerarMatriz');
-const gridContainer = document.getElementById('gridContainer');
-const reiniciarGrid = document.getElementById('reiniciarGrid');
+// scripts.js
 
-//crea la matriz inicial apartir de los inputs del usuario
-botonGenerarMatriz.addEventListener('click', () => {
-    const filas = parseInt(inputFilas.value);
-    const columnas = parseInt(inputColumnas.value);
+import { generarGrid, reiniciarTransform, inicializarZoomPan } from './render.js';
 
-    if (isNaN(filas) || isNaN(columnas) || (filas && columnas)< 0 ) {
-        console.log("Ingrese nuevamente las filas y columnas")
-        return;
+const inputFilas = document.getElementById("inputFilas");
+const inputColumnas = document.getElementById("inputColumnas");
+const botonGenerarMatriz = document.getElementById("botonGenerarMatriz");
+const botonReiniciar = document.getElementById("reiniciarGrid");
+const gridContainer = document.getElementById("gridContainer");
 
-    }
+function reiniciarGrid() {
+	gridContainer.innerHTML = "";
+	reiniciarTransform();
+}
 
-    //Llamamos a la funcion de genera matriz 
+botonReiniciar.addEventListener("click", reiniciarGrid);
 
-    generarGrid(filas, columnas);
-    
+botonGenerarMatriz.addEventListener("click", () => {
+	const filas = parseInt(inputFilas.value);
+	const columnas = parseInt(inputColumnas.value);
+
+	if (isNaN(filas) || isNaN(columnas) || filas <= 0 || columnas <= 0) {
+		alert("Ingresá valores válidos");
+		return;
+	}
+
+	generarGrid(filas, columnas);
 });
+
+[inputFilas, inputColumnas].forEach(input => {
+	input.addEventListener("keydown", (e) => {
+		if (e.key === "Enter") {
+			botonGenerarMatriz.click();
+		}
+	});
+});
+
+inicializarZoomPan();
+
