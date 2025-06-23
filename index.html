@@ -1,44 +1,78 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Manu Maps</title>
-    <script src="https://cdn.tailwindcss.com"></script>
-    <link rel="stylesheet" href="style.css">
+	<meta charset="UTF-8" />
+	<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+	<title>Manu Maps</title>
+	<script src="https://cdn.tailwindcss.com"></script>
+	<link rel="stylesheet" href="style.css"/>
 </head>
-<body class="bg-gray-100 p-6 font-sans">
-    
-    <div>
-        <h1 class="text-4xl font-bold text-center text-blue-600 mb-6">Algoritmo A* en JavaScript</h1>
+<body class="bg-gray-100 font-sans">
 
-    </div>
+	<!-- NAVBAR -->
+	<nav class="bg-white shadow p-4 flex justify-between items-center">
+		<h1 class="text-3xl font-extrabold text-blue-600">Manu Maps</h1>
+		<span class="text-sm text-gray-600 font-medium">Algoritmo A*</span>
+	</nav>
 
-    <!-- Controles -->
-    <div class="flex gap-4 mt-6 justify-center">
-        <input type="number" id="inputFilas" placeholder="Filas" class="border px-2 py-1 rounded w-24">
-        <input type="number" id="inputColumnas" placeholder="Columnas" class="border px-2 py-1 rounded w-24">
-        <button id="botonGenerarMatriz" class="bg-green-500 text-white px-4 py-1 rounded hover:bg-green-600">
-            Generar Grid
-        </button>
-        <button id="reiniciarGrid" class="bg-red-500 text-white px-4 py-1 rounded hover:bg-red-600">
-            Reiniciar Grid
-        </button>
-    </div>
+	<!-- PANEL DE CONTROLES COMO CARD -->
+	<div class="max-w-5xl mx-auto mt-6 px-4">
+		<div class="bg-white p-6 rounded-2xl shadow-lg space-y-4 border">
+			<h2 class="text-xl font-bold text-gray-800 mb-2">Controles</h2>
 
-    <div id="mapa-wrapper" class="flex items-center justify-center mx-auto mt-6 px-6 h-[calc(100vh-200px)] overflow-hidden relative bg-gray-400 max-w-full">
-    <div id="mapa-zoom" class="transition-transform origin-center">
-        <div id="gridContainer" class="grid gap-1"></div>
-    </div>
-    </div>
+			<!-- Tamaño + Acciones en una sola línea -->
+			<div class="flex flex-wrap justify-between gap-4">
+				<!-- Tamaño del Grid -->
+				<div class="flex items-center gap-3">
+					<span class="font-medium text-gray-700">Tamaño:</span>
+					<input type="number" id="inputFilas" placeholder="Filas" class="border px-2 py-1 rounded w-24">
+					<input type="number" id="inputColumnas" placeholder="Columnas" class="border px-2 py-1 rounded w-24">
+				</div>
 
+				<!-- Acciones -->
+				<div class="flex items-center gap-3">
+					<button id="botonGenerarMatriz" class="bg-green-500 text-white px-4 py-2 rounded hover:bg-green-600">Generar Grid</button>
+					<button id="reiniciarGrid" class="bg-red-500 text-white px-4 py-2 rounded hover:bg-red-600">Reiniciar Grid</button>
+				</div>
+			</div>
 
-    <!-- Resultado -->
-    <p id="resultado" class="text-center text-lg mt-4 text-gray-700"></p>
-    <p class="text-red-500 font-bold">¿Tailwind funciona?</p>
+			<!-- Tipo de celda abajo -->
+			<div class="flex flex-wrap items-center gap-3 pt-2 border-t pt-4">
+				<span class="font-medium text-gray-700">Seleccionar:</span>
+				<button id="botonInicio" class="bg-blue-500 text-white px-3 py-1 rounded hover:bg-blue-600 text-sm">Inicio</button>
+				<button id="botonFin" class="bg-purple-500 text-white px-3 py-1 rounded hover:bg-purple-600 text-sm">Fin</button>
+				<button id="botonObstaculo" class="bg-gray-800 text-white px-3 py-1 rounded hover:bg-gray-900 text-sm">Obstáculo</button>
+			</div>
+		</div>
+	</div>
 
-    
+	<!-- MAPA -->
+	<div class="max-w-7xl mx-auto mt-6 px-4">
+		<div class="bg-white p-4 rounded-2xl shadow-lg border h-[calc(100vh-240px)] overflow-hidden relative flex items-center justify-center">
 
-<script type="module" src="scripts.js"></script>
+			<!-- Zona del mapa -->
+			<div id="mapa-wrapper" class="flex items-center justify-center mx-auto mt-6 px-6 h-[calc(100vh-200px)] overflow-hidden relative bg-gray-400 max-w-full">
+                <div id="mapa-zoom" class="transition-transform origin-center">
+                    <div id="gridContainer" class="grid gap-1"></div>
+                </div>
+            </div>
+
+				<!-- BOTONES ZOOM CENTRADOS ABAJO -->
+				<div class="absolute bottom-4 left-1/2 transform -translate-x-1/2 z-10 flex gap-2">
+					<button id="zoomIn" class="px-3 bg-gray-600 hover:bg-gray-700 text-white rounded-lg font-medium transition-all">+</button>
+					<button id="zoomOut" class="px-3 bg-gray-600 hover:bg-gray-700 text-white rounded-lg font-medium transition-all">−</button>
+				</div>
+			</div>
+		</div>
+
+		<!-- Resultado -->
+		<p id="resultado" class="text-center text-lg mt-4 text-gray-700"></p>
+	</div>
+
+	<!-- Prueba visual -->
+	<p class="text-center mt-6 text-red-500 font-bold">¿Tailwind funciona?</p>
+
+	<!-- Script -->
+	<script type="module" src="scripts.js"></script>
 </body>
 </html>
