@@ -15,7 +15,9 @@ import {
 	generarGrid,
 	reiniciarTransform,
 	inicializarZoomPan,
-	generarManzanas
+	generarManzanas,
+	hacerZoomIn,
+	hacerZoomOut,
 } from './render.js';
 
 const inputFilas = document.getElementById("inputFilas");
@@ -23,6 +25,8 @@ const inputColumnas = document.getElementById("inputColumnas");
 const botonGenerarMatriz = document.getElementById("botonGenerarMatriz");
 const botonReiniciar = document.getElementById("reiniciarGrid");
 const gridContainer = document.getElementById("gridContainer");
+const botonZoomIn = document.getElementById("zoomIn");
+const botonZoomOut = document.getElementById("zoomOut");
 
 let matriz = []; 
 
@@ -62,6 +66,11 @@ botonGenerarMatriz.addEventListener("click", () => {
 
 // Inicializa zoom y pan una vez
 inicializarZoomPan();
+
+// botones de zoom
+botonZoomIn.addEventListener("click", hacerZoomIn);
+botonZoomOut.addEventListener("click", hacerZoomOut);
+
 
 
 

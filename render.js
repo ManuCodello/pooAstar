@@ -134,6 +134,17 @@ export function generarManzanas(matriz, filas, columnas) {
 	}
 }
 
+//Funciones para los botones de zoom in y zoom out
+
+export function hacerZoomIn() {
+	escala = Math.min(3, escala + 0.1); // máximo zoom 3x
+	actualizarTransform();
+}
+
+export function hacerZoomOut() {
+	escala = Math.max(0.3, escala - 0.1); // mínimo zoom 0.3x
+	actualizarTransform();
+}
 
 
 
