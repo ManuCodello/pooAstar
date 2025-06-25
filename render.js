@@ -131,10 +131,28 @@ export function agregarHoverObstaculo(contenedorGrilla, matriz) {
 
 // Limita el pan para que no se salga del área visible
 function limitarPan() {
-    const minX = mapaContenedor.offsetWidth - mapaZoom.offsetWidth * escala;
-    const minY = mapaContenedor.offsetHeight - mapaZoom.offsetHeight * escala;
-    posX = Math.min(0, Math.max(minX, posX));
-    posY = Math.min(0, Math.max(minY, posY));
+    // Calcular el tamaño real del contenido escalado
+    const contenidoAncho = mapaZoom.offsetWidth * escala;
+    const contenidoAlto = mapaZoom.offsetHeight * escala;
+    
+    // Calcular los límites
+    const maxX = 0; // No puede ir más a la derecha que 0
+    const minX = mapaContenedor.offsetWidth - contenidoAncho; // Límite izquierdo
+    const maxY = 0; // No puede ir más arriba que 0
+    const minY = mapaContenedor.offsetHeight - contenidoAlto; // Límite inferior
+    
+    // Si el contenido es más pequeño que el contenedor, centrarlo
+    if (contenidoAncho <= mapaContenedor.offsetWidth) {
+        posX = (mapaContenedor.offsetWidth - contenidoAncho) / 2;
+    } else {
+        posX = Math.max(minX, Math.min(maxX, posX));
+    }
+    
+    if (contenidoAlto <= mapaContenedor.offsetHeight) {
+        posY = (mapaContenedor.offsetHeight - contenidoAlto) / 2;
+    } else {
+        posY = Math.max(minY, Math.min(maxY, posY));
+    }
 }
 
 // Aplica la transformación de pan y zoom
@@ -151,8 +169,22 @@ export function reiniciarTransformacion() {
     actualizarTransformacion();
 }
 
+// Hace zoom hacia un punto específico (x, y son coordenadas del contenedor)
+function hacerZoomEnPunto(factorZoom, puntoX, puntoY) {
+    const escalaAnterior = escala;
+    escala = Math.max(0.3, Math.min(3, escala * factorZoom));
+    
+    // Calcular el nuevo offset para que el zoom se centre en el punto dado
+    const factorEscala = escala / escalaAnterior;
+    posX = puntoX - (puntoX - posX) * factorEscala;
+    posY = puntoY - (puntoY - posY) * factorEscala;
+    
+    actualizarTransformacion();
+}
+
 // Inicializa los eventos de zoom y pan
 export function inicializarZoomPan() {
+    // Eventos de arrastre en el mapa
     mapaZoom.addEventListener("mousedown", (e) => {
         // Solo pan si no se está pintando obstáculos
         if (modoSeleccion === "obstaculo" && e.target.classList.contains("celda")) {
@@ -162,11 +194,14 @@ export function inicializarZoomPan() {
         arrastrando = true;
         inicioX = e.clientX - posX;
         inicioY = e.clientY - posY;
+        e.preventDefault(); // Prevenir selección de texto
     });
+    
     document.addEventListener("mouseup", () => {
         arrastrando = false;
         pintandoObstaculos = false;
     });
+    
     document.addEventListener("mousemove", (e) => {
         if (arrastrando && !pintandoObstaculos) {
             posX = e.clientX - inicioX;
@@ -174,14 +209,27 @@ export function inicializarZoomPan() {
             actualizarTransformacion();
         }
     });
-    // Zoom con rueda del mouse
-    mapaZoom.addEventListener("wheel", (e) => {
+    
+    // Zoom con rueda del mouse - CORREGIDO: ahora en mapaContenedor
+    mapaContenedor.addEventListener("wheel", (e) => {
         e.preventDefault();
-        const intensidadZoom = 0.1;
-        if (e.deltaY < 0) escala += intensidadZoom;
-        else escala -= intensidadZoom;
-        escala = Math.max(0.3, Math.min(escala, 3));
-        actualizarTransformacion();
+        
+        // Obtener la posición del mouse relativa al contenedor
+        const rect = mapaContenedor.getBoundingClientRect();
+        const mouseX = e.clientX - rect.left;
+        const mouseY = e.clientY - rect.top;
+        
+        // Factor de zoom
+        const factorZoom = e.deltaY < 0 ? 1.1 : 0.9;
+        
+        hacerZoomEnPunto(factorZoom, mouseX, mouseY);
+    });
+    
+    // Prevenir el zoom del navegador
+    document.addEventListener("keydown", (e) => {
+        if ((e.ctrlKey || e.metaKey) && (e.key === "+" || e.key === "-" || e.key === "0")) {
+            e.preventDefault();
+        }
     });
 }
 
@@ -209,22 +257,15 @@ export function generarManzanas(matriz, filas, columnas) {
     }
 }
 
-// Botones de zoom
+// Botones de zoom - CORREGIDOS: ahora hacen zoom hacia el centro
 export function hacerZoomMas() {
-    escala = Math.min(3, escala + 0.1);
-    actualizarTransformacion();
+    const centroX = mapaContenedor.offsetWidth / 2;
+    const centroY = mapaContenedor.offsetHeight / 2;
+    hacerZoomEnPunto(1.2, centroX, centroY);
 }
+
 export function hacerZoomMenos() {
-    escala = Math.max(0.3, escala - 0.1);
-    actualizarTransformacion();
+    const centroX = mapaContenedor.offsetWidth / 2;
+    const centroY = mapaContenedor.offsetHeight / 2;
+    hacerZoomEnPunto(0.8, centroX, centroY);
 }
-
-
-
-
-
-
-
-
-
-

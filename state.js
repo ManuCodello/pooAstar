@@ -1,4 +1,4 @@
-// Estado global centralizado para compartir entre módulos
+// Estado global centralizado para usar entre los módulos
 
 export let matriz = [];
 export let modoSeleccion = null;
