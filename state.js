@@ -1,11 +1,12 @@
-// Estado global centralizado
+// Estado global centralizado para compartir entre módulos
 
 export let matriz = [];
 export let modoSeleccion = null;
 export let celdaInicio = null;
 export let celdaFin = null;
 
-export function setMatriz(val) { matriz = val; }
-export function setModoSeleccion(val) { modoSeleccion = val; }
-export function setCeldaInicio(val) { celdaInicio = val; }
-export function setCeldaFin(val) { celdaFin = val; }
+// Setters para actualizar el estado global
+export function setMatriz(valor) { matriz = valor; }
+export function setModoSeleccion(valor) { modoSeleccion = valor; }
+export function setCeldaInicio(valor) { celdaInicio = valor; }
+export function setCeldaFin(valor) { celdaFin = valor; }

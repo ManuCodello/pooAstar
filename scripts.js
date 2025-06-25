@@ -1,29 +1,18 @@
-// ✅ Acá se conectan eventos del usuario con la lógica y el render
+// ✅ Conecta los eventos del usuario con la lógica y el render
 
-// 1. Crear grid inicial en memoria (array de arrays)
-// 2. Llamar a renderGrid() al cargar
-// 3. Eventos:
-//   - Click en celda → toggleMuro()
-//   - Click en btnIniciar → ejecutarAEstrella() y mostrar ruta
-//   - Click en btnReset → resetear grid y rerenderizar
-
-// 4. Mostrar mensajes al usuario en el <p id="resultado">
-// 5. Validar que haya inicio, fin y que no esté bloqueado el camino
-
-// scripts.js
 import {
-    generarGrid,
-    reiniciarTransform,
+    generarGrilla,
+    reiniciarTransformacion,
     inicializarZoomPan,
     generarManzanas,
-    hacerZoomIn,
-    hacerZoomOut,
+    hacerZoomMas,
+    hacerZoomMenos,
     animarRuta,
     pintarBusqueda,
-    actualizarCeldasIconos,
+    actualizarIconosCeldas,
     agregarHoverObstaculo
 } from './render.js';
-import { astar } from './pathfinding.js';
+import { aEstrella } from './pathfinding.js';
 import {
     matriz, setMatriz,
     modoSeleccion, setModoSeleccion,
@@ -31,29 +20,32 @@ import {
     celdaFin, setCeldaFin
 } from './state.js';
 
+// Elementos del DOM
 const inputFilas = document.getElementById("inputFilas");
 const inputColumnas = document.getElementById("inputColumnas");
-const botonGenerarMatriz = document.getElementById("botonGenerarMatriz");
+const botonGenerarGrilla = document.getElementById("botonGenerarMatriz");
 const botonReiniciar = document.getElementById("reiniciarGrid");
-const gridContainer = document.getElementById("gridContainer");
-const botonZoomIn = document.getElementById("zoomIn");
-const botonZoomOut = document.getElementById("zoomOut");
+const contenedorGrilla = document.getElementById("gridContainer");
+const botonZoomMas = document.getElementById("zoomIn");
+const botonZoomMenos = document.getElementById("zoomOut");
 const botonObstaculo = document.getElementById("botonObstaculo");
-const botonEjecutarAstar = document.getElementById("botonEjecutarAstar");
+const botonEjecutarAEstrella = document.getElementById("botonEjecutarAstar");
 const botonInicio = document.getElementById("botonInicio");
 const botonFin = document.getElementById("botonFin");
 
-function reiniciarGrid() {
-    gridContainer.innerHTML = "";
-    reiniciarTransform();
+// Reinicia la grilla y el estado
+function reiniciarGrilla() {
+    contenedorGrilla.innerHTML = "";
+    reiniciarTransformacion();
     setMatriz([]);
     setCeldaInicio(null);
     setCeldaFin(null);
 }
 
-botonReiniciar.addEventListener("click", reiniciarGrid);
+botonReiniciar.addEventListener("click", reiniciarGrilla);
 
-botonGenerarMatriz.addEventListener("click", () => {
+// Genera la grilla según los inputs
+botonGenerarGrilla.addEventListener("click", () => {
     const filas = parseInt(inputFilas.value);
     const columnas = parseInt(inputColumnas.value);
 
@@ -62,47 +54,49 @@ botonGenerarMatriz.addEventListener("click", () => {
         return;
     }
 
-    reiniciarGrid();
-    const nuevaMatriz = generarGrid(filas, columnas, gridContainer);
+    reiniciarGrilla();
+    const nuevaMatriz = generarGrilla(filas, columnas, contenedorGrilla);
     setMatriz(nuevaMatriz);
     generarManzanas(nuevaMatriz, filas, columnas);
-    actualizarCeldasIconos(nuevaMatriz);
-    agregarHoverObstaculo(gridContainer, nuevaMatriz);
+    actualizarIconosCeldas(nuevaMatriz);
+    agregarHoverObstaculo(contenedorGrilla, nuevaMatriz);
 });
 
-// Generar matriz al apretar Enter en inputs
+// Permite generar la grilla con Enter
 [inputFilas, inputColumnas].forEach(input => {
     input.addEventListener("keydown", (e) => {
         if (e.key === "Enter") {
-            botonGenerarMatriz.click();
+            botonGenerarGrilla.click();
         }
     });
 });
 
+// Inicializa zoom y pan
 inicializarZoomPan();
-botonZoomIn.addEventListener("click", hacerZoomIn);
-botonZoomOut.addEventListener("click", hacerZoomOut);
+botonZoomMas.addEventListener("click", hacerZoomMas);
+botonZoomMenos.addEventListener("click", hacerZoomMenos);
 
+// Selección de modo de celda
 botonInicio.addEventListener("click", () => setModoSeleccion("inicio"));
 botonFin.addEventListener("click", () => setModoSeleccion("fin"));
 botonObstaculo.addEventListener("click", () => setModoSeleccion("obstaculo"));
 
 // Permitir colocar varios obstáculos mientras esté activo el modo
-let paintingObstacles = false;
+let pintandoObstaculos = false;
 
-gridContainer.addEventListener("mousedown", (e) => {
+contenedorGrilla.addEventListener("mousedown", (e) => {
     if (modoSeleccion === "obstaculo" && e.target.classList.contains("celda")) {
-        paintingObstacles = true;
+        pintandoObstaculos = true;
         pintarObstaculo(e.target);
-        gridContainer.addEventListener("mousemove", mouseMoveObstaculo);
+        contenedorGrilla.addEventListener("mousemove", moverMouseObstaculo);
     }
 });
 document.addEventListener("mouseup", () => {
-    paintingObstacles = false;
-    gridContainer.removeEventListener("mousemove", mouseMoveObstaculo);
+    pintandoObstaculos = false;
+    contenedorGrilla.removeEventListener("mousemove", moverMouseObstaculo);
 });
-function mouseMoveObstaculo(e) {
-    if (paintingObstacles && modoSeleccion === "obstaculo" && e.target.classList.contains("celda")) {
+function moverMouseObstaculo(e) {
+    if (pintandoObstaculos && modoSeleccion === "obstaculo" && e.target.classList.contains("celda")) {
         pintarObstaculo(e.target);
     }
 }
@@ -115,12 +109,12 @@ function pintarObstaculo(celda) {
         celda.classList.remove("bg-white", "bg-yellow-300", "bg-orange-300", "bg-gray-800");
         celda.dataset.tipo = "obstaculo";
         celda.innerHTML = "";
-        actualizarCeldasIconos(matriz);
+        actualizarIconosCeldas(matriz);
     }
 }
 
 // Click en celdas para inicio y fin
-gridContainer.addEventListener("click", (e) => {
+contenedorGrilla.addEventListener("click", (e) => {
     if (!e.target.classList.contains("celda")) return;
 
     if (modoSeleccion === "inicio") {
@@ -135,7 +129,7 @@ gridContainer.addEventListener("click", (e) => {
         e.target.dataset.tipo = "inicio";
         setCeldaInicio(e.target);
         setModoSeleccion(null);
-        actualizarCeldasIconos(matriz);
+        actualizarIconosCeldas(matriz);
     } else if (modoSeleccion === "fin") {
         if (celdaFin) {
             celdaFin.classList.remove("bg-purple-500");
@@ -148,27 +142,27 @@ gridContainer.addEventListener("click", (e) => {
         e.target.dataset.tipo = "fin";
         setCeldaFin(e.target);
         setModoSeleccion(null);
-        actualizarCeldasIconos(matriz);
+        actualizarIconosCeldas(matriz);
     }
 });
 
 // Hover para pintar obstáculos
-agregarHoverObstaculo(gridContainer, matriz);
+agregarHoverObstaculo(contenedorGrilla, matriz);
 
 // Ejecutar A* con animación
-botonEjecutarAstar.addEventListener("click", async () => {
+botonEjecutarAEstrella.addEventListener("click", async () => {
     if (!celdaInicio || !celdaFin) {
         alert("Seleccioná inicio y fin");
         return;
     }
     const filas = matriz.length;
     const columnas = matriz[0].length;
-    const grid = [];
+    const grilla = [];
     for (let y = 0; y < filas; y++) {
-        const row = [];
+        const fila = [];
         for (let x = 0; x < columnas; x++) {
             const celda = matriz[y][x];
-            row.push(
+            fila.push(
                 celda.dataset.tipo === "camino" ||
                 celda.dataset.tipo === "inicio" ||
                 celda.dataset.tipo === "fin"
@@ -188,23 +182,24 @@ botonEjecutarAstar.addEventListener("click", async () => {
                 celda.innerHTML = "";
             }
         }
-        grid.push(row);
+        grilla.push(fila);
     }
-    const inicioCoords = getCeldaCoords(celdaInicio);
-    const finCoords = getCeldaCoords(celdaFin);
+    const coordsInicio = obtenerCoordenadasCelda(celdaInicio);
+    const coordsFin = obtenerCoordenadasCelda(celdaFin);
 
-    const { path, visitados } = astar(inicioCoords, finCoords, grid);
+    const { camino, visitados } = aEstrella(coordsInicio, coordsFin, grilla);
 
     await pintarBusqueda(visitados, matriz);
-    if (!path || path.length === 0) {
+    if (!camino || camino.length === 0) {
         alert("No se encontró camino");
         return;
     }
-    await animarRuta(path, matriz);
-    actualizarCeldasIconos(matriz);
+    await animarRuta(camino, matriz);
+    actualizarIconosCeldas(matriz);
 });
 
-function getCeldaCoords(celda) {
+// Utilidad para obtener coordenadas de una celda a partir de su id
+function obtenerCoordenadasCelda(celda) {
     const [_, x, y] = celda.id.split("-");
     return { row: parseInt(y), col: parseInt(x) };
 }

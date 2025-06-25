@@ -1,100 +1,105 @@
-// ✅ Acá va TODA la lógica del algoritmo A*
+// ✅ Toda la lógica del algoritmo A* (A estrella)
 
-// 1. Clase Nodo (coordenadas, costos, heurística, padre)
-// 2. Función heurística (Manhattan o Euclídea)
-// 3. Función getVecinos(nodo, grid)
-// 4. Función ejecutarAEstrella(grid, inicio, fin)
-// 5. Retornar array con la ruta final o null si no se encontró
-
-
-export function astar(start, end, grid) {
-    const openSet = [];
-    const closedSet = new Set();
+export function aEstrella(inicio, fin, grilla) {
+    const abiertos = [];
+    const cerrados = new Set();
     const visitados = [];
 
-    const startNode = {
-        ...start,
+    // Nodo inicial
+    const nodoInicio = {
+        ...inicio,
         g: 0,
-        h: heuristic(start, end),
-        f: 0 + heuristic(start, end),
-        parent: null
+        h: heuristica(inicio, fin),
+        f: 0 + heuristica(inicio, fin),
+        padre: null
     };
 
-    openSet.push(startNode);
+    abiertos.push(nodoInicio);
 
-    while (openSet.length > 0) {
-        let current = openSet.reduce((a, b) => (a.f < b.f ? a : b));
+    while (abiertos.length > 0) {
+        // Selecciona el nodo con menor f
+        let actual = abiertos.reduce((a, b) => (a.f < b.f ? a : b));
 
-        if (current.row === end.row && current.col === end.col) {
+        // Si llegamos al destino, reconstruimos el camino
+        if (actual.row === fin.row && actual.col === fin.col) {
             return {
-                path: reconstructPath(current),
+                camino: reconstruirCamino(actual),
                 visitados
             };
         }
 
-        openSet.splice(openSet.indexOf(current), 1);
-        closedSet.add(nodeToKey(current));
-        visitados.push({ row: current.row, col: current.col });
+        abiertos.splice(abiertos.indexOf(actual), 1);
+        cerrados.add(nodoClave(actual));
+        visitados.push({ row: actual.row, col: actual.col });
 
-        for (const neighbor of getNeighbors(current, grid)) {
-            const key = nodeToKey(neighbor);
-            if (closedSet.has(key)) continue;
+        // Explora vecinos
+        for (const vecino of obtenerVecinos(actual, grilla)) {
+            const clave = nodoClave(vecino);
+            if (cerrados.has(clave)) continue;
 
-            const tentativeG = current.g + 1;
+            const gTentativo = actual.g + 1;
 
-            let openNode = openSet.find(n => n.row === neighbor.row && n.col === neighbor.col);
-            if (!openNode) {
-                openNode = {
-                    ...neighbor,
-                    g: tentativeG,
-                    h: heuristic(neighbor, end),
-                    f: tentativeG + heuristic(neighbor, end),
-                    parent: current
+            let nodoAbierto = abiertos.find(n => n.row === vecino.row && n.col === vecino.col);
+            if (!nodoAbierto) {
+                nodoAbierto = {
+                    ...vecino,
+                    g: gTentativo,
+                    h: heuristica(vecino, fin),
+                    f: gTentativo + heuristica(vecino, fin),
+                    padre: actual
                 };
-                openSet.push(openNode);
-            } else if (tentativeG < openNode.g) {
-                openNode.g = tentativeG;
-                openNode.f = tentativeG + openNode.h;
-                openNode.parent = current;
+                abiertos.push(nodoAbierto);
+            } else if (gTentativo < nodoAbierto.g) {
+                nodoAbierto.g = gTentativo;
+                nodoAbierto.f = gTentativo + nodoAbierto.h;
+                nodoAbierto.padre = actual;
             }
         }
     }
-    return { path: [], visitados };
+    // Si no hay camino
+    return { camino: [], visitados };
 }
 
-function heuristic(a, b) {
+// Heurística Manhattan
+function heuristica(a, b) {
     return Math.abs(a.row - b.row) + Math.abs(a.col - b.col);
 }
-function getNeighbors(node, grid) {
-    const dirs = [
+
+// Devuelve vecinos válidos (no obstáculos ni fuera de la grilla)
+function obtenerVecinos(nodo, grilla) {
+    const direcciones = [
         { row: -1, col: 0 },
         { row: 1, col: 0 },
         { row: 0, col: -1 },
         { row: 0, col: 1 }
     ];
-    const neighbors = [];
-    for (const dir of dirs) {
-        const newRow = node.row + dir.row;
-        const newCol = node.col + dir.col;
+    const vecinos = [];
+    for (const dir of direcciones) {
+        const nuevaFila = nodo.row + dir.row;
+        const nuevaCol = nodo.col + dir.col;
         if (
-            newRow >= 0 && newRow < grid.length &&
-            newCol >= 0 && newCol < grid[0].length &&
-            grid[newRow][newCol] === 0
+            nuevaFila >= 0 && nuevaFila < grilla.length &&
+            nuevaCol >= 0 && nuevaCol < grilla[0].length &&
+            grilla[nuevaFila][nuevaCol] === 0
         ) {
-            neighbors.push({ row: newRow, col: newCol });
+            vecinos.push({ row: nuevaFila, col: nuevaCol });
         }
     }
-    return neighbors;
+    return vecinos;
 }
-function reconstructPath(endNode) {
-    const path = [];
-    let current = endNode;
-    while (current !== null) {
-        path.push({ row: current.row, col: current.col });
-        current = current.parent;
+
+// Reconstruye el camino desde el nodo final al inicial
+function reconstruirCamino(nodoFinal) {
+    const camino = [];
+    let actual = nodoFinal;
+    while (actual !== null) {
+        camino.push({ row: actual.row, col: actual.col });
+        actual = actual.padre;
     }
-    return path.reverse();
+    return camino.reverse();
 }
-function nodeToKey(node) {
-    return `${node.row},${node.col}`;
+
+// Genera una clave única para cada nodo
+function nodoClave(nodo) {
+    return `${nodo.row},${nodo.col}`;
 }

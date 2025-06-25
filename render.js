@@ -1,19 +1,4 @@
-// ✅ Acá va TODO lo relacionado a cómo se ve la matriz
-
-// 1. Función renderGrid(grid)
-//   - Crea o actualiza las celdas en #grid-container
-//   - Asigna clases según tipo: muro, camino, inicio, fin
-
-// 2. Función marcarRuta(ruta)
-//   - Cambia el estilo de las celdas que forman la ruta final
-
-// 3. Función toggleMuro(x, y)
-//   - Alterna si una celda es caminable o no
-
-
-// render.js
-
-// ✅ render.js
+// ✅ Todo lo relacionado a la visualización de la matriz
 
 import {
     modoSeleccion, setModoSeleccion,
@@ -21,46 +6,48 @@ import {
     celdaFin, setCeldaFin
 } from './state.js';
 
+// Variables de zoom y pan
 let escala = 1;
 let posX = 0;
 let posY = 0;
-let isDragging = false;
-let isPaintingObstacles = false; // NEW
-let startX, startY;
+let arrastrando = false;
+let pintandoObstaculos = false;
+let inicioX, inicioY;
 
 const mapaZoom = document.getElementById("mapa-zoom");
-const mapaWrapper = document.getElementById("mapa-wrapper");
+const mapaContenedor = document.getElementById("mapa-wrapper");
 
-// Emojis
-const emojiArrow = "⬆️";
+// Emojis para los tipos de celda
+const emojiFlecha = "⬆️";
 const emojiPin = "📍";
-const emojiWorks = "🚧";
+const emojiObras = "🚧";
 
-export function generarGrid(filas, columnas, gridContainer) {
-    gridContainer.innerHTML = "";
-    gridContainer.style.gridTemplateColumns = `repeat(${columnas}, 32px)`;
+// Genera la grilla visual y en memoria
+export function generarGrilla(filas, columnas, contenedorGrilla) {
+    contenedorGrilla.innerHTML = "";
+    contenedorGrilla.style.gridTemplateColumns = `repeat(${columnas}, 32px)`;
 
     const matriz = [];
 
-    for (let y = 0; y < filas; y++) {
-        const fila = [];
-        for (let x = 0; x < columnas; x++) {
+    for (let fila = 0; fila < filas; fila++) {
+        const filaCeldas = [];
+        for (let columna = 0; columna < columnas; columna++) {
             const celda = document.createElement("div");
             celda.className = "celda bg-white border border-gray-300 flex items-center justify-center";
-            celda.id = `celda-${x}-${y}`;
+            celda.id = `celda-${columna}-${fila}`;
             celda.dataset.tipo = "camino";
             celda.innerHTML = "";
-            gridContainer.appendChild(celda);
-            fila.push(celda);
+            contenedorGrilla.appendChild(celda);
+            filaCeldas.push(celda);
         }
-        matriz.push(fila);
+        matriz.push(filaCeldas);
     }
 
-    reiniciarTransform();
+    reiniciarTransformacion();
     return matriz;
 }
 
-// Pinta la ruta encontrada con animación (verde)
+// Anima la ruta encontrada (verde)
 export async function animarRuta(ruta, matriz) {
     for (const { row, col } of ruta) {
         const celda = matriz[row][col];
@@ -71,12 +58,12 @@ export async function animarRuta(ruta, matriz) {
             celda.classList.remove("bg-white", "bg-blue-200");
             celda.classList.add("bg-green-300");
             celda.innerHTML = "";
-            await sleep(30);
+            await esperar(30);
         }
     }
 }
 
-// Pinta los nodos visitados durante la búsqueda (azul)
+// Anima los nodos visitados durante la búsqueda (azul)
 export async function pintarBusqueda(visitados, matriz) {
     for (const { row, col } of visitados) {
         const celda = matriz[row][col];
@@ -89,37 +76,37 @@ export async function pintarBusqueda(visitados, matriz) {
             celda.classList.remove("bg-white", "bg-green-300");
             celda.classList.add("bg-blue-200");
             celda.innerHTML = "";
-            await sleep(10);
+            await esperar(10);
         }
     }
 }
 
-// Utilidad para animaciones
-function sleep(ms) {
+// Utilidad para animaciones (pausa)
+function esperar(ms) {
     return new Promise(resolve => setTimeout(resolve, ms));
 }
 
-// Llama esto después de cada cambio de tipo de celda
-export function actualizarCeldasIconos(matriz) {
-    for (let y = 0; y < matriz.length; y++) {
-        for (let x = 0; x < matriz[0].length; x++) {
-            const celda = matriz[y][x];
+// Actualiza los iconos (emojis) según el tipo de celda
+export function actualizarIconosCeldas(matriz) {
+    for (let fila = 0; fila < matriz.length; fila++) {
+        for (let columna = 0; columna < matriz[0].length; columna++) {
+            const celda = matriz[fila][columna];
             celda.innerHTML = "";
             celda.classList.remove("bg-blue-500", "bg-purple-500", "bg-gray-700", "bg-gray-800", "bg-white");
             if (celda.dataset.tipo === "inicio") {
-                celda.innerHTML = emojiArrow;
+                celda.innerHTML = emojiFlecha;
             } else if (celda.dataset.tipo === "fin") {
                 celda.innerHTML = emojiPin;
             } else if (celda.dataset.tipo === "obstaculo") {
-                celda.innerHTML = emojiWorks;
+                celda.innerHTML = emojiObras;
             }
         }
     }
 }
 
-// Hover para pintar obstáculos
-export function agregarHoverObstaculo(gridContainer, matriz) {
-    gridContainer.addEventListener("mouseover", (e) => {
+// Hover para pintar obstáculos (efecto naranja)
+export function agregarHoverObstaculo(contenedorGrilla, matriz) {
+    contenedorGrilla.addEventListener("mouseover", (e) => {
         if (
             modoSeleccion === "obstaculo" &&
             e.target.classList.contains("celda") &&
@@ -129,7 +116,7 @@ export function agregarHoverObstaculo(gridContainer, matriz) {
             e.target.classList.add("bg-orange-300");
         }
     });
-    gridContainer.addEventListener("mouseout", (e) => {
+    contenedorGrilla.addEventListener("mouseout", (e) => {
         if (
             modoSeleccion === "obstaculo" &&
             e.target.classList.contains("celda") &&
@@ -142,59 +129,65 @@ export function agregarHoverObstaculo(gridContainer, matriz) {
     });
 }
 
-// Zoom y pan (igual que antes)
+// Limita el pan para que no se salga del área visible
 function limitarPan() {
-    const minX = mapaWrapper.offsetWidth - mapaZoom.offsetWidth * escala;
-    const minY = mapaWrapper.offsetHeight - mapaZoom.offsetHeight * escala;
+    const minX = mapaContenedor.offsetWidth - mapaZoom.offsetWidth * escala;
+    const minY = mapaContenedor.offsetHeight - mapaZoom.offsetHeight * escala;
     posX = Math.min(0, Math.max(minX, posX));
     posY = Math.min(0, Math.max(minY, posY));
 }
-function actualizarTransform() {
+
+// Aplica la transformación de pan y zoom
+function actualizarTransformacion() {
     limitarPan();
     mapaZoom.style.transform = `translate(${posX}px, ${posY}px) scale(${escala})`;
 }
-export function reiniciarTransform() {
+
+// Reinicia el zoom y pan
+export function reiniciarTransformacion() {
     escala = 1;
     posX = 0;
     posY = 0;
-    actualizarTransform();
+    actualizarTransformacion();
 }
+
+// Inicializa los eventos de zoom y pan
 export function inicializarZoomPan() {
     mapaZoom.addEventListener("mousedown", (e) => {
-        // Only start pan if not painting obstacles
+        // Solo pan si no se está pintando obstáculos
         if (modoSeleccion === "obstaculo" && e.target.classList.contains("celda")) {
-            isPaintingObstacles = true;
-            return; // Don't start pan
+            pintandoObstaculos = true;
+            return;
         }
-        isDragging = true;
-        startX = e.clientX - posX;
-        startY = e.clientY - posY;
+        arrastrando = true;
+        inicioX = e.clientX - posX;
+        inicioY = e.clientY - posY;
     });
     document.addEventListener("mouseup", () => {
-        isDragging = false;
-        isPaintingObstacles = false; // Stop painting obstacles on mouse up
+        arrastrando = false;
+        pintandoObstaculos = false;
     });
     document.addEventListener("mousemove", (e) => {
-        if (isDragging && !isPaintingObstacles) {
-            posX = e.clientX - startX;
-            posY = e.clientY - startY;
-            actualizarTransform();
+        if (arrastrando && !pintandoObstaculos) {
+            posX = e.clientX - inicioX;
+            posY = e.clientY - inicioY;
+            actualizarTransformacion();
         }
     });
-    // Wheel zoom remains unchanged
+    // Zoom con rueda del mouse
     mapaZoom.addEventListener("wheel", (e) => {
         e.preventDefault();
-        const zoomIntensity = 0.1;
-        if (e.deltaY < 0) escala += zoomIntensity;
-        else escala -= zoomIntensity;
+        const intensidadZoom = 0.1;
+        if (e.deltaY < 0) escala += intensidadZoom;
+        else escala -= intensidadZoom;
         escala = Math.max(0.3, Math.min(escala, 3));
-        actualizarTransform();
+        actualizarTransformacion();
     });
 }
 
-// Manzanas (igual que antes)
+// Genera "manzanas" (bloques) en la grilla
 export function generarManzanas(matriz, filas, columnas) {
-    const tamaños = [
+    const tamanios = [
         { ancho: 3, alto: 3 },
         { ancho: 4, alto: 3 },
         { ancho: 3, alto: 4 },
@@ -202,7 +195,7 @@ export function generarManzanas(matriz, filas, columnas) {
     ];
     for (let i = 1; i < filas - 2; i += 5) {
         for (let j = 1; j < columnas - 2; j += 5) {
-            const { ancho, alto } = tamaños[Math.floor(Math.random() * tamaños.length)];
+            const { ancho, alto } = tamanios[Math.floor(Math.random() * tamanios.length)];
             for (let x = i; x < i + alto && x < filas; x++) {
                 for (let y = j; y < j + ancho && y < columnas; y++) {
                     const celda = matriz[x][y];
@@ -216,14 +209,14 @@ export function generarManzanas(matriz, filas, columnas) {
     }
 }
 
-// Zoom buttons
-export function hacerZoomIn() {
+// Botones de zoom
+export function hacerZoomMas() {
     escala = Math.min(3, escala + 0.1);
-    actualizarTransform();
+    actualizarTransformacion();
 }
-export function hacerZoomOut() {
+export function hacerZoomMenos() {
     escala = Math.max(0.3, escala - 0.1);
-    actualizarTransform();
+    actualizarTransformacion();
 }
 
 
