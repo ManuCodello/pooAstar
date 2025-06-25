@@ -13,6 +13,16 @@ body {
 	border: 1px solid #d1d5db;
 	box-shadow: inset 0 0 2px rgba(0, 0, 0, 0.1);
 	transition: background-color 0.2s ease;
+	font-size: 1.3rem;
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	/* Remove background for emoji cells */
+}
+[data-tipo="inicio"],
+[data-tipo="fin"],
+[data-tipo="obstaculo"] {
+	background: none !important;
 }
 
 /* Tipos de celda */
@@ -42,4 +52,22 @@ body {
 
 [data-tipo="obstaculo"] {
 	background-color: #374151; /* Tailwind gray-700 */
+}
+
+.celda.bg-orange-300 {
+    background-color: #fdba74 !important; /* Tailwind orange-300 */
+}
+.celda.bg-blue-200 {
+    background-color: #1c70d6 !important; /* Tailwind blue-200 */
+}
+.celda.bg-green-300 {
+    background-color: #00c742 !important; /* Tailwind green-300 */
+}
+
+#mapa-wrapper {
+    overflow: auto !important;
+    min-width: 400px;
+    min-height: 400px;
+    max-width: 100%;
+    max-height: 100%;
 }

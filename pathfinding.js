@@ -8,104 +8,93 @@
 
 
 export function astar(start, end, grid) {
-	// Representamos nodos como: {row, col, g, h, f, parent}
-	const openSet = [];
-	const closedSet = new Set();
+    const openSet = [];
+    const closedSet = new Set();
+    const visitados = [];
 
-	const startNode = {
-		...start,
-		g: 0,
-		h: heuristic(start, end),
-		f: 0 + heuristic(start, end),
-		parent: null
-	};
+    const startNode = {
+        ...start,
+        g: 0,
+        h: heuristic(start, end),
+        f: 0 + heuristic(start, end),
+        parent: null
+    };
 
-	openSet.push(startNode);
+    openSet.push(startNode);
 
-	while (openSet.length > 0) {
-		// Elegimos el nodo con menor f
-		let current = openSet.reduce((a, b) => (a.f < b.f ? a : b));
+    while (openSet.length > 0) {
+        let current = openSet.reduce((a, b) => (a.f < b.f ? a : b));
 
-		// ¿Llegamos al final?
-		if (current.row === end.row && current.col === end.col) {
-			return reconstructPath(current);
-		}
+        if (current.row === end.row && current.col === end.col) {
+            return {
+                path: reconstructPath(current),
+                visitados
+            };
+        }
 
-		// Movemos el nodo actual al conjunto cerrado
-		openSet.splice(openSet.indexOf(current), 1);
-		closedSet.add(nodeToKey(current));
+        openSet.splice(openSet.indexOf(current), 1);
+        closedSet.add(nodeToKey(current));
+        visitados.push({ row: current.row, col: current.col });
 
-		// Vecinos válidos (no fuera del mapa, no muros, no repetidos)
-		for (const neighbor of getNeighbors(current, grid)) {
-			const key = nodeToKey(neighbor);
-			if (closedSet.has(key)) continue;
+        for (const neighbor of getNeighbors(current, grid)) {
+            const key = nodeToKey(neighbor);
+            if (closedSet.has(key)) continue;
 
-			const tentativeG = current.g + 1; // Costo: 1 por celda
+            const tentativeG = current.g + 1;
 
-			let openNode = openSet.find(n => n.row === neighbor.row && n.col === neighbor.col);
-			if (!openNode) {
-				openNode = {
-					...neighbor,
-					g: tentativeG,
-					h: heuristic(neighbor, end),
-					f: tentativeG + heuristic(neighbor, end),
-					parent: current
-				};
-				openSet.push(openNode);
-			} else if (tentativeG < openNode.g) {
-				openNode.g = tentativeG;
-				openNode.f = tentativeG + openNode.h;
-				openNode.parent = current;
-			}
-		}
-	}
-
-	// Si no hay camino posible
-	return [];
+            let openNode = openSet.find(n => n.row === neighbor.row && n.col === neighbor.col);
+            if (!openNode) {
+                openNode = {
+                    ...neighbor,
+                    g: tentativeG,
+                    h: heuristic(neighbor, end),
+                    f: tentativeG + heuristic(neighbor, end),
+                    parent: current
+                };
+                openSet.push(openNode);
+            } else if (tentativeG < openNode.g) {
+                openNode.g = tentativeG;
+                openNode.f = tentativeG + openNode.h;
+                openNode.parent = current;
+            }
+        }
+    }
+    return { path: [], visitados };
 }
 
-// Heurística Manhattan (solo 4 direcciones)
 function heuristic(a, b) {
-	return Math.abs(a.row - b.row) + Math.abs(a.col - b.col);
+    return Math.abs(a.row - b.row) + Math.abs(a.col - b.col);
 }
-
-// Vecinos en 4 direcciones válidos
 function getNeighbors(node, grid) {
-	const dirs = [
-		{ row: -1, col: 0 }, // arriba
-		{ row: 1, col: 0 },  // abajo
-		{ row: 0, col: -1 }, // izquierda
-		{ row: 0, col: 1 }   // derecha
-	];
-	const neighbors = [];
-
-	for (const dir of dirs) {
-		const newRow = node.row + dir.row;
-		const newCol = node.col + dir.col;
-
-		if (
-			newRow >= 0 && newRow < grid.length &&
-			newCol >= 0 && newCol < grid[0].length &&
-			grid[newRow][newCol] === 0
-		) {
-			neighbors.push({ row: newRow, col: newCol });
-		}
-	}
-
-	return neighbors;
+    const dirs = [
+        { row: -1, col: 0 },
+        { row: 1, col: 0 },
+        { row: 0, col: -1 },
+        { row: 0, col: 1 }
+    ];
+    const neighbors = [];
+    for (const dir of dirs) {
+        const newRow = node.row + dir.row;
+        const newCol = node.col + dir.col;
+        if (
+            newRow >= 0 && newRow < grid.length &&
+            newCol >= 0 && newCol < grid[0].length &&
+            grid[newRow][newCol] === 0
+        ) {
+            neighbors.push({ row: newRow, col: newCol });
+        }
+    }
+    return neighbors;
 }
-
-// Construcción del camino final
 function reconstructPath(endNode) {
-	const path = [];
-	let current = endNode;
-	while (current !== null) {
-		path.push({ row: current.row, col: current.col });
-		current = current.parent;
-	}
-	return path.reverse(); // Desde el inicio al final
+    const path = [];
+    let current = endNode;
+    while (current !== null) {
+        path.push({ row: current.row, col: current.col });
+        current = current.parent;
+    }
+    return path.reverse();
 }
-
 function nodeToKey(node) {
-	return `${node.row},${node.col}`;
+    return `${node.row},${node.col}`;
 }

@@ -18,7 +18,10 @@ import {
     generarManzanas,
     hacerZoomIn,
     hacerZoomOut,
-    marcarRuta
+    animarRuta,
+    pintarBusqueda,
+    actualizarCeldasIconos,
+    agregarHoverObstaculo
 } from './render.js';
 import { astar } from './pathfinding.js';
 import {
@@ -39,8 +42,6 @@ const botonObstaculo = document.getElementById("botonObstaculo");
 const botonEjecutarAstar = document.getElementById("botonEjecutarAstar");
 const botonInicio = document.getElementById("botonInicio");
 const botonFin = document.getElementById("botonFin");
-
-// Remove local state variables! Use only imported state.js
 
 function reiniciarGrid() {
     gridContainer.innerHTML = "";
@@ -65,6 +66,8 @@ botonGenerarMatriz.addEventListener("click", () => {
     const nuevaMatriz = generarGrid(filas, columnas, gridContainer);
     setMatriz(nuevaMatriz);
     generarManzanas(nuevaMatriz, filas, columnas);
+    actualizarCeldasIconos(nuevaMatriz);
+    agregarHoverObstaculo(gridContainer, nuevaMatriz);
 });
 
 // Generar matriz al apretar Enter en inputs
@@ -76,61 +79,84 @@ botonGenerarMatriz.addEventListener("click", () => {
     });
 });
 
-// Inicializa zoom y pan una vez
 inicializarZoomPan();
-
-// botones de zoom
 botonZoomIn.addEventListener("click", hacerZoomIn);
 botonZoomOut.addEventListener("click", hacerZoomOut);
 
-// Botones de selección de modo
 botonInicio.addEventListener("click", () => setModoSeleccion("inicio"));
 botonFin.addEventListener("click", () => setModoSeleccion("fin"));
 botonObstaculo.addEventListener("click", () => setModoSeleccion("obstaculo"));
 
-// Click en celdas del grid para seleccionar inicio, fin u obstáculo
+// Permitir colocar varios obstáculos mientras esté activo el modo
+let paintingObstacles = false;
+
+gridContainer.addEventListener("mousedown", (e) => {
+    if (modoSeleccion === "obstaculo" && e.target.classList.contains("celda")) {
+        paintingObstacles = true;
+        pintarObstaculo(e.target);
+        gridContainer.addEventListener("mousemove", mouseMoveObstaculo);
+    }
+});
+document.addEventListener("mouseup", () => {
+    paintingObstacles = false;
+    gridContainer.removeEventListener("mousemove", mouseMoveObstaculo);
+});
+function mouseMoveObstaculo(e) {
+    if (paintingObstacles && modoSeleccion === "obstaculo" && e.target.classList.contains("celda")) {
+        pintarObstaculo(e.target);
+    }
+}
+function pintarObstaculo(celda) {
+    if (
+        celda.dataset.tipo !== "inicio" &&
+        celda.dataset.tipo !== "fin" &&
+        celda.dataset.tipo !== "obstaculo"
+    ) {
+        celda.classList.remove("bg-white", "bg-yellow-300", "bg-orange-300", "bg-gray-800");
+        celda.dataset.tipo = "obstaculo";
+        celda.innerHTML = "";
+        actualizarCeldasIconos(matriz);
+    }
+}
+
+// Click en celdas para inicio y fin
 gridContainer.addEventListener("click", (e) => {
     if (!e.target.classList.contains("celda")) return;
 
     if (modoSeleccion === "inicio") {
-        // Limpiar anterior
         if (celdaInicio) {
             celdaInicio.classList.remove("bg-blue-500");
             celdaInicio.classList.add("bg-white");
             celdaInicio.dataset.tipo = "camino";
+            celdaInicio.innerHTML = "";
         }
         e.target.classList.remove("bg-white");
         e.target.classList.add("bg-blue-500");
         e.target.dataset.tipo = "inicio";
         setCeldaInicio(e.target);
         setModoSeleccion(null);
+        actualizarCeldasIconos(matriz);
     } else if (modoSeleccion === "fin") {
         if (celdaFin) {
             celdaFin.classList.remove("bg-purple-500");
             celdaFin.classList.add("bg-white");
             celdaFin.dataset.tipo = "camino";
+            celdaFin.innerHTML = "";
         }
         e.target.classList.remove("bg-white");
         e.target.classList.add("bg-purple-500");
         e.target.dataset.tipo = "fin";
         setCeldaFin(e.target);
         setModoSeleccion(null);
-    } else if (modoSeleccion === "obstaculo") {
-        if (
-            e.target.dataset.tipo !== "inicio" &&
-            e.target.dataset.tipo !== "fin"
-        ) {
-            e.target.classList.remove("bg-white");
-            e.target.classList.remove("bg-yellow-300");
-            e.target.classList.add("bg-gray-800");
-            e.target.dataset.tipo = "obstaculo";
-        }
-        setModoSeleccion(null);
+        actualizarCeldasIconos(matriz);
     }
 });
 
-// Ejecutar A*
-botonEjecutarAstar.addEventListener("click", () => {
+// Hover para pintar obstáculos
+agregarHoverObstaculo(gridContainer, matriz);
+
+// Ejecutar A* con animación
+botonEjecutarAstar.addEventListener("click", async () => {
     if (!celdaInicio || !celdaFin) {
         alert("Seleccioná inicio y fin");
         return;
@@ -142,7 +168,6 @@ botonEjecutarAstar.addEventListener("click", () => {
         const row = [];
         for (let x = 0; x < columnas; x++) {
             const celda = matriz[y][x];
-            // Caminable si es camino, inicio o fin
             row.push(
                 celda.dataset.tipo === "camino" ||
                 celda.dataset.tipo === "inicio" ||
@@ -157,9 +182,10 @@ botonEjecutarAstar.addEventListener("click", () => {
                 celda.dataset.tipo !== "obstaculo" &&
                 celda.dataset.tipo !== "manzana"
             ) {
-                celda.classList.remove("bg-yellow-300");
+                celda.classList.remove("bg-yellow-300", "bg-yellow-100");
                 celda.classList.add("bg-white");
                 celda.dataset.tipo = "camino";
+                celda.innerHTML = "";
             }
         }
         grid.push(row);
@@ -167,12 +193,15 @@ botonEjecutarAstar.addEventListener("click", () => {
     const inicioCoords = getCeldaCoords(celdaInicio);
     const finCoords = getCeldaCoords(celdaFin);
 
-    const ruta = astar(inicioCoords, finCoords, grid);
-    if (!ruta || ruta.length === 0) {
+    const { path, visitados } = astar(inicioCoords, finCoords, grid);
+
+    await pintarBusqueda(visitados, matriz);
+    if (!path || path.length === 0) {
         alert("No se encontró camino");
         return;
     }
-    marcarRuta(ruta, matriz);
+    await animarRuta(path, matriz);
+    actualizarCeldasIconos(matriz);
 });
 
 function getCeldaCoords(celda) {
