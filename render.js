@@ -15,6 +15,12 @@
 
 // ✅ render.js
 
+import {
+    modoSeleccion, setModoSeleccion,
+    celdaInicio, setCeldaInicio,
+    celdaFin, setCeldaFin
+} from './state.js';
+
 let escala = 1;
 let posX = 0;
 let posY = 0;
@@ -42,15 +48,48 @@ export function generarGrid(filas, columnas, gridContainer) {
 			celda.dataset.tipo = "camino";
 			gridContainer.appendChild(celda);
 			fila.push(celda);
+			
+			agregarEventosCeldas(celda); //eventos de celda inicio y salida
 		}
 		matriz.push(fila);
 	}
 
 	reiniciarTransform();
 
+
 	return matriz;
 }
 
+//funciones de eventos en las celdas
+export function agregarEventosCeldas(celda) {
+    celda.addEventListener("click", () => {
+        if (modoSeleccion === "inicio") {
+            if (celdaInicio) {
+                celdaInicio.classList.remove("bg-blue-500");
+                celdaInicio.classList.add("bg-white");
+                celdaInicio.dataset.tipo = "camino";
+            }
+            celda.classList.remove("bg-white");
+            celda.classList.add("bg-blue-500");
+            celda.dataset.tipo = "inicio";
+            setCeldaInicio(celda);
+            setModoSeleccion(null);
+        }
+
+        if (modoSeleccion === "fin") {
+            if (celdaFin) {
+                celdaFin.classList.remove("bg-red-700");
+                celdaFin.classList.add("bg-white");
+                celdaFin.dataset.tipo = "camino";
+            }
+            celda.classList.remove("bg-white");
+            celda.classList.add("bg-red-700");
+            celda.dataset.tipo = "fin";
+            setCeldaFin(celda);
+            setModoSeleccion(null);
+        }
+    });
+}
 
 
 //Funciones, Zoom y Pan
@@ -144,6 +183,20 @@ export function hacerZoomIn() {
 export function hacerZoomOut() {
 	escala = Math.max(0.3, escala - 0.1); // mínimo zoom 0.3x
 	actualizarTransform();
+}
+
+// Pinta la ruta encontrada
+export function marcarRuta(ruta, matriz) {
+    for (const { row, col } of ruta) {
+        const celda = matriz[row][col];
+        if (
+            celda.dataset.tipo !== "inicio" &&
+            celda.dataset.tipo !== "fin"
+        ) {
+            celda.classList.remove("bg-white");
+            celda.classList.add("bg-yellow-300");
+        }
+    }
 }
 
 
