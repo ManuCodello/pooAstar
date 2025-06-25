@@ -131,27 +131,26 @@ export function agregarHoverObstaculo(contenedorGrilla, matriz) {
 
 // Limita el pan para que no se salga del área visible
 function limitarPan() {
-    // Calcular el tamaño real del contenido escalado
-    const contenidoAncho = mapaZoom.offsetWidth * escala;
-    const contenidoAlto = mapaZoom.offsetHeight * escala;
-    
-    // Calcular los límites
-    const maxX = 0; // No puede ir más a la derecha que 0
-    const minX = mapaContenedor.offsetWidth - contenidoAncho; // Límite izquierdo
-    const maxY = 0; // No puede ir más arriba que 0
-    const minY = mapaContenedor.offsetHeight - contenidoAlto; // Límite inferior
-    
-    // Si el contenido es más pequeño que el contenedor, centrarlo
-    if (contenidoAncho <= mapaContenedor.offsetWidth) {
-        posX = (mapaContenedor.offsetWidth - contenidoAncho) / 2;
+    const anchoMapa = mapaZoom.offsetWidth * escala;
+    const altoMapa = mapaZoom.offsetHeight * escala;
+    const anchoContenedor = mapaContenedor.offsetWidth;
+    const altoContenedor = mapaContenedor.offsetHeight;
+
+    // Si el mapa es más pequeño, centrado
+    if (anchoMapa <= anchoContenedor) {
+        posX = (anchoContenedor - anchoMapa) / 2;
     } else {
-        posX = Math.max(minX, Math.min(maxX, posX));
+        const minX = anchoContenedor - anchoMapa;
+        const maxX = 0;
+        posX = Math.min(maxX, Math.max(minX, posX));
     }
-    
-    if (contenidoAlto <= mapaContenedor.offsetHeight) {
-        posY = (mapaContenedor.offsetHeight - contenidoAlto) / 2;
+
+    if (altoMapa <= altoContenedor) {
+        posY = (altoContenedor - altoMapa) / 2;
     } else {
-        posY = Math.max(minY, Math.min(maxY, posY));
+        const minY = altoContenedor - altoMapa;
+        const maxY = 0;
+        posY = Math.min(maxY, Math.max(minY, posY));
     }
 }
 
@@ -184,24 +183,28 @@ function hacerZoomEnPunto(factorZoom, puntoX, puntoY) {
 
 // Inicializa los eventos de zoom y pan
 export function inicializarZoomPan() {
-    // Eventos de arrastre en el mapa
+    // Eventos de arrastre en el mapa SOLO con botón derecho
     mapaZoom.addEventListener("mousedown", (e) => {
-        // Solo pan si no se está pintando obstáculos
-        if (modoSeleccion === "obstaculo" && e.target.classList.contains("celda")) {
+        // Botón derecho (2) para pan
+        if (e.button === 2) {
+            arrastrando = true;
+            inicioX = e.clientX - posX;
+            inicioY = e.clientY - posY;
+            e.preventDefault(); // Prevenir menú contextual
+            return;
+        }
+        // Si es modo obstáculo y botón izquierdo, pintar obstáculos
+        if (modoSeleccion === "obstaculo" && e.button === 0 && e.target.classList.contains("celda")) {
             pintandoObstaculos = true;
             return;
         }
-        arrastrando = true;
-        inicioX = e.clientX - posX;
-        inicioY = e.clientY - posY;
-        e.preventDefault(); // Prevenir selección de texto
     });
-    
+
     document.addEventListener("mouseup", () => {
         arrastrando = false;
         pintandoObstaculos = false;
     });
-    
+
     document.addEventListener("mousemove", (e) => {
         if (arrastrando && !pintandoObstaculos) {
             posX = e.clientX - inicioX;
@@ -209,22 +212,22 @@ export function inicializarZoomPan() {
             actualizarTransformacion();
         }
     });
-    
-    // Zoom con rueda del mouse - CORREGIDO: ahora en mapaContenedor
+
+    // Desactivar menú contextual solo en el mapa para permitir pan con botón derecho
+    mapaZoom.addEventListener("contextmenu", (e) => {
+        e.preventDefault();
+    });
+
+    // Zoom con rueda del mouse (igual que antes)
     mapaContenedor.addEventListener("wheel", (e) => {
         e.preventDefault();
-        
-        // Obtener la posición del mouse relativa al contenedor
         const rect = mapaContenedor.getBoundingClientRect();
         const mouseX = e.clientX - rect.left;
         const mouseY = e.clientY - rect.top;
-        
-        // Factor de zoom
         const factorZoom = e.deltaY < 0 ? 1.1 : 0.9;
-        
         hacerZoomEnPunto(factorZoom, mouseX, mouseY);
     });
-    
+
     // Prevenir el zoom del navegador
     document.addEventListener("keydown", (e) => {
         if ((e.ctrlKey || e.metaKey) && (e.key === "+" || e.key === "-" || e.key === "0")) {

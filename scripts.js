@@ -84,8 +84,9 @@ botonObstaculo.addEventListener("click", () => setModoSeleccion("obstaculo"));
 // Permitir colocar varios obstáculos mientras esté activo el modo
 let pintandoObstaculos = false;
 
+// Solo permite pintar obstáculos con el botón izquierdo y en modo obstáculo
 contenedorGrilla.addEventListener("mousedown", (e) => {
-    if (modoSeleccion === "obstaculo" && e.target.classList.contains("celda")) {
+    if (modoSeleccion === "obstaculo" && e.button === 0 && e.target.classList.contains("celda")) {
         pintandoObstaculos = true;
         pintarObstaculo(e.target);
         contenedorGrilla.addEventListener("mousemove", moverMouseObstaculo);
@@ -96,7 +97,7 @@ document.addEventListener("mouseup", () => {
     contenedorGrilla.removeEventListener("mousemove", moverMouseObstaculo);
 });
 function moverMouseObstaculo(e) {
-    if (pintandoObstaculos && modoSeleccion === "obstaculo" && e.target.classList.contains("celda")) {
+    if (pintandoObstaculos && modoSeleccion === "obstaculo" && e.buttons === 1 && e.target.classList.contains("celda")) {
         pintarObstaculo(e.target);
     }
 }
@@ -148,6 +149,7 @@ contenedorGrilla.addEventListener("click", (e) => {
 
 // Hover para pintar obstáculos
 agregarHoverObstaculo(contenedorGrilla, matriz);
+
 
 // Ejecutar A* con animación
 botonEjecutarAEstrella.addEventListener("click", async () => {
@@ -202,6 +204,13 @@ botonEjecutarAEstrella.addEventListener("click", async () => {
 function obtenerCoordenadasCelda(celda) {
     const [_, x, y] = celda.id.split("-");
     return { row: parseInt(y), col: parseInt(x) };
+}
+
+function limitarPan() {
+    const minX = mapaContenedor.offsetWidth - mapaZoom.offsetWidth * escala;
+    const minY = mapaContenedor.offsetHeight - mapaZoom.offsetHeight * escala;
+    posX = Math.min(0, Math.max(minX, posX));
+    posY = Math.min(0, Math.max(minY, posY));
 }
 
 
