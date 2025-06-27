@@ -5,7 +5,7 @@ export let modoSeleccion = null;
 export let celdaInicio = null;
 export let celdaFin = null;
 
-// Setters para actualizar el estado global
+// Setters que permiten modificar el estado global del valor
 export function setMatriz(valor) { matriz = valor; }
 export function setModoSeleccion(valor) { modoSeleccion = valor; }
 export function setCeldaInicio(valor) { celdaInicio = valor; }

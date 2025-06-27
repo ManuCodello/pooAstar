@@ -105,7 +105,7 @@ export function actualizarIconosCeldas(matriz) {
 }
 
 // Hover para pintar obstáculos (efecto naranja)
-export function agregarHoverObstaculo(contenedorGrilla, matriz) {
+export function agregarHoverObstaculo(contenedorGrilla) {
     contenedorGrilla.addEventListener("mouseover", (e) => {
         if (
             modoSeleccion === "obstaculo" &&
@@ -235,6 +235,7 @@ export function inicializarZoomPan() {
         }
     });
 }
+
 
 // Genera "manzanas" (bloques) en la grilla
 export function generarManzanas(matriz, filas, columnas) {

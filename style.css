@@ -1,4 +1,3 @@
-/* Acá podés extender estilos Tailwind si querés */
 
 body {
 	background-color: #f7fafc;
@@ -17,7 +16,7 @@ body {
 	display: flex;
 	align-items: center;
 	justify-content: center;
-	/* Remove background for emoji cells */
+	
 }
 [data-tipo="inicio"],
 [data-tipo="fin"],
