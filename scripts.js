@@ -12,7 +12,7 @@ import {
     actualizarIconosCeldas,
     agregarHoverObstaculo
 } from './render.js';
-import { aEstrella } from './pathfinding.js';
+import { AEstrella } from './pathfinding.js';
 import {
     matriz, setMatriz,
     modoSeleccion, setModoSeleccion,
@@ -189,8 +189,10 @@ botonEjecutarAEstrella.addEventListener("click", async () => {
     const coordsInicio = obtenerCoordenadasCelda(celdaInicio);
     const coordsFin = obtenerCoordenadasCelda(celdaFin);
 
-    const { camino, visitados } = aEstrella(coordsInicio, coordsFin, grilla);
+    const algoritmo = new AEstrella(grilla);
+    const { camino, visitados } = algoritmo.buscarCamino(coordsInicio, coordsFin, grilla)
 
+    
     await pintarBusqueda(visitados, matriz);
     if (!camino || camino.length === 0) {
         alert("No se encontró camino");
