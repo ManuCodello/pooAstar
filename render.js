@@ -103,7 +103,7 @@ export function actualizarIconosCeldas(matriz) {
         }
     }
 }
-
+    
 // Hover para pintar obstáculos (efecto naranja)
 export function agregarHoverObstaculo(contenedorGrilla) {
     contenedorGrilla.addEventListener("mouseover", (e) => {
@@ -273,3 +273,4 @@ export function hacerZoomMenos() {
     const centroY = mapaContenedor.offsetHeight / 2;
     hacerZoomEnPunto(0.8, centroX, centroY);
 }
+

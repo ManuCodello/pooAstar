@@ -10,3 +10,4 @@ export function setMatriz(valor) { matriz = valor; }
 export function setModoSeleccion(valor) { modoSeleccion = valor; }
 export function setCeldaInicio(valor) { celdaInicio = valor; }
 export function setCeldaFin(valor) { celdaFin = valor; }
+
