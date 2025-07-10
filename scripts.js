@@ -1,5 +1,4 @@
-// ✅ Conecta los eventos del usuario con la lógica y el render
-
+// Clase controladora de toda la lógica y eventos
 import {
     generarGrilla,
     reiniciarTransformacion,
@@ -11,210 +10,203 @@ import {
     pintarBusqueda,
     actualizarIconosCeldas,
     agregarHoverObstaculo
-} from './render.js';
+} from '../old/renderold.js';
 import { AEstrella } from './pathfinding.js';
-import {
-    matriz, setMatriz,
-    modoSeleccion, setModoSeleccion,
-    celdaInicio, setCeldaInicio,
-    celdaFin, setCeldaFin
-} from './state.js';
 
-// Elementos del DOM
-const inputFilas = document.getElementById("inputFilas");
-const inputColumnas = document.getElementById("inputColumnas");
-const botonGenerarGrilla = document.getElementById("botonGenerarMatriz");
-const botonReiniciar = document.getElementById("reiniciarGrid");
-const contenedorGrilla = document.getElementById("gridContainer");
-const botonZoomMas = document.getElementById("zoomIn");
-const botonZoomMenos = document.getElementById("zoomOut");
-const botonObstaculo = document.getElementById("botonObstaculo");
-const botonEjecutarAEstrella = document.getElementById("botonEjecutarAstar");
-const botonInicio = document.getElementById("botonInicio");
-const botonFin = document.getElementById("botonFin");
+export class Scripts {
+    constructor() {
+        this.inputFilas = document.getElementById("inputFilas");
+        this.inputColumnas = document.getElementById("inputColumnas");
+        this.botonGenerarGrilla = document.getElementById("botonGenerarMatriz");
+        this.botonReiniciar = document.getElementById("reiniciarGrid");
+        this.contenedorGrilla = document.getElementById("gridContainer");
+        this.botonZoomMas = document.getElementById("zoomIn");
+        this.botonZoomMenos = document.getElementById("zoomOut");
+        this.botonObstaculo = document.getElementById("botonObstaculo");
+        this.botonEjecutarAEstrella = document.getElementById("botonEjecutarAstar");
+        this.botonInicio = document.getElementById("botonInicio");
+        this.botonFin = document.getElementById("botonFin");
+        this.pintandoObstaculos = false;
 
-// Reinicia la grilla y el estado
-function reiniciarGrilla() {
-    contenedorGrilla.innerHTML = "";
-    reiniciarTransformacion();
-    setMatriz([]);
-    setCeldaInicio(null);
-    setCeldaFin(null);
-}
+        // Estado global ahora como propiedades de la clase
+        this.matriz = [];
+        this.modoSeleccion = null;
+        this.celdaInicio = null;
+        this.celdaFin = null;
 
-botonReiniciar.addEventListener("click", reiniciarGrilla);
-
-// Genera la grilla según los inputs
-botonGenerarGrilla.addEventListener("click", () => {
-    const filas = parseInt(inputFilas.value);
-    const columnas = parseInt(inputColumnas.value);
-
-    if (isNaN(filas) || isNaN(columnas) || filas <= 0 || columnas <= 0) {
-        alert("Ingresá valores válidos");
-        return;
+        this.inicializarEventos();
+        inicializarZoomPan();
     }
 
-    reiniciarGrilla();
-    const nuevaMatriz = generarGrilla(filas, columnas, contenedorGrilla);
-    setMatriz(nuevaMatriz);
-    generarManzanas(nuevaMatriz, filas, columnas);
-    actualizarIconosCeldas(nuevaMatriz);
-    agregarHoverObstaculo(contenedorGrilla, nuevaMatriz);
-});
+    reiniciarGrilla() {
+        this.contenedorGrilla.innerHTML = "";
+        reiniciarTransformacion();
+        this.matriz = [];
+        this.celdaInicio = null;
+        this.celdaFin = null;
+    }
 
-// Permite generar la grilla con Enter
-[inputFilas, inputColumnas].forEach(input => {
-    input.addEventListener("keydown", (e) => {
-        if (e.key === "Enter") {
-            botonGenerarGrilla.click();
+    inicializarEventos() {
+        this.botonReiniciar.addEventListener("click", () => this.reiniciarGrilla());
+
+        this.botonGenerarGrilla.addEventListener("click", () => this.generarNuevaGrilla());
+
+        [this.inputFilas, this.inputColumnas].forEach(input => {
+            input.addEventListener("keydown", (e) => {
+                if (e.key === "Enter") {
+                    this.botonGenerarGrilla.click();
+                }
+            });
+        });
+
+        this.botonZoomMas.addEventListener("click", hacerZoomMas);
+        this.botonZoomMenos.addEventListener("click", hacerZoomMenos);
+
+        this.botonInicio.addEventListener("click", () => { this.modoSeleccion = "inicio"; });
+        this.botonFin.addEventListener("click", () => { this.modoSeleccion = "fin"; });
+        this.botonObstaculo.addEventListener("click", () => { this.modoSeleccion = "obstaculo"; });
+
+        this.contenedorGrilla.addEventListener("mousedown", (e) => this.iniciarPintadoObstaculo(e));
+        document.addEventListener("mouseup", () => this.detenerPintadoObstaculo());
+
+        this.contenedorGrilla.addEventListener("click", (e) => this.seleccionarCelda(e));
+
+        agregarHoverObstaculo(this.contenedorGrilla, this.matriz, () => this.modoSeleccion);
+
+        this.botonEjecutarAEstrella.addEventListener("click", () => this.ejecutarAEstrella());
+    }
+
+    generarNuevaGrilla() {
+        const filas = parseInt(this.inputFilas.value);
+        const columnas = parseInt(this.inputColumnas.value);
+
+        if (isNaN(filas) || isNaN(columnas) || filas <= 0 || columnas <= 0) {
+            alert("Ingresá valores válidos");
+            return;
         }
-    });
-});
 
-// Inicializa zoom y pan
-inicializarZoomPan();
-botonZoomMas.addEventListener("click", hacerZoomMas);
-botonZoomMenos.addEventListener("click", hacerZoomMenos);
-
-// Selección de modo de celda
-botonInicio.addEventListener("click", () => setModoSeleccion("inicio"));
-botonFin.addEventListener("click", () => setModoSeleccion("fin"));
-botonObstaculo.addEventListener("click", () => setModoSeleccion("obstaculo"));
-
-// Permitir colocar varios obstáculos mientras esté activo el modo
-let pintandoObstaculos = false;
-
-// Solo permite pintar obstáculos con el botón izquierdo y en modo obstáculo
-contenedorGrilla.addEventListener("mousedown", (e) => {
-    if (modoSeleccion === "obstaculo" && e.button === 0 && e.target.classList.contains("celda")) {
-        pintandoObstaculos = true;
-        pintarObstaculo(e.target);
-        contenedorGrilla.addEventListener("mousemove", moverMouseObstaculo);
+        this.reiniciarGrilla();
+        const nuevaMatriz = generarGrilla(filas, columnas, this.contenedorGrilla);
+        this.matriz = nuevaMatriz;
+        generarManzanas(nuevaMatriz, filas, columnas);
+        actualizarIconosCeldas(nuevaMatriz);
+        agregarHoverObstaculo(this.contenedorGrilla, nuevaMatriz, () => this.modoSeleccion);
     }
-});
-document.addEventListener("mouseup", () => {
-    pintandoObstaculos = false;
-    contenedorGrilla.removeEventListener("mousemove", moverMouseObstaculo);
-});
-function moverMouseObstaculo(e) {
-    if (pintandoObstaculos && modoSeleccion === "obstaculo" && e.buttons === 1 && e.target.classList.contains("celda")) {
-        pintarObstaculo(e.target);
-    }
-}
-function pintarObstaculo(celda) {
-    if (
-        celda.dataset.tipo !== "inicio" &&
-        celda.dataset.tipo !== "fin" &&
-        celda.dataset.tipo !== "obstaculo"
-    ) {
-        celda.classList.remove("bg-white", "bg-yellow-300", "bg-orange-300", "bg-gray-800");
-        celda.dataset.tipo = "obstaculo";
-        celda.innerHTML = "";
-        actualizarIconosCeldas(matriz);
-    }
-}
 
-// Click en celdas para inicio y fin
-contenedorGrilla.addEventListener("click", (e) => {
-    if (!e.target.classList.contains("celda")) return;
-
-    if (modoSeleccion === "inicio") {
-        if (celdaInicio) {
-            celdaInicio.classList.remove("bg-blue-500");
-            celdaInicio.classList.add("bg-white");
-            celdaInicio.dataset.tipo = "camino";
-            celdaInicio.innerHTML = "";
+    iniciarPintadoObstaculo(e) {
+        if (this.modoSeleccion === "obstaculo" && e.button === 0 && e.target.classList.contains("celda")) {
+            this.pintandoObstaculos = true;
+            this.pintarObstaculo(e.target);
+            this.contenedorGrilla.addEventListener("mousemove", this.moverMouseObstaculo);
         }
-        e.target.classList.remove("bg-white");
-        e.target.classList.add("bg-blue-500");
-        e.target.dataset.tipo = "inicio";
-        setCeldaInicio(e.target);
-        setModoSeleccion(null);
-        actualizarIconosCeldas(matriz);
-    } else if (modoSeleccion === "fin") {
-        if (celdaFin) {
-            celdaFin.classList.remove("bg-purple-500");
-            celdaFin.classList.add("bg-white");
-            celdaFin.dataset.tipo = "camino";
-            celdaFin.innerHTML = "";
+    }
+
+    detenerPintadoObstaculo() {
+        this.pintandoObstaculos = false;
+        this.contenedorGrilla.removeEventListener("mousemove", this.moverMouseObstaculo);
+    }
+
+    moverMouseObstaculo = (e) => {
+        if (this.pintandoObstaculos && this.modoSeleccion === "obstaculo" && e.buttons === 1 && e.target.classList.contains("celda")) {
+            this.pintarObstaculo(e.target);
         }
-        e.target.classList.remove("bg-white");
-        e.target.classList.add("bg-purple-500");
-        e.target.dataset.tipo = "fin";
-        setCeldaFin(e.target);
-        setModoSeleccion(null);
-        actualizarIconosCeldas(matriz);
     }
-});
 
-// Hover para pintar obstáculos
-agregarHoverObstaculo(contenedorGrilla, matriz);
-
-
-// Ejecutar A* con animación
-botonEjecutarAEstrella.addEventListener("click", async () => {
-    if (!celdaInicio || !celdaFin) {
-        alert("Seleccioná inicio y fin");
-        return;
+    pintarObstaculo(celda) {
+        if (
+            celda.dataset.tipo !== "inicio" &&
+            celda.dataset.tipo !== "fin" &&
+            celda.dataset.tipo !== "obstaculo"
+        ) {
+            celda.classList.remove("bg-white", "bg-yellow-300", "bg-orange-300", "bg-gray-800");
+            celda.dataset.tipo = "obstaculo";
+            celda.innerHTML = "";
+            actualizarIconosCeldas(this.matriz);
+        }
     }
-    const filas = matriz.length;
-    const columnas = matriz[0].length;
-    const grilla = [];
-    for (let y = 0; y < filas; y++) {
-        const fila = [];
-        for (let x = 0; x < columnas; x++) {
-            const celda = matriz[y][x];
-            fila.push(
-                celda.dataset.tipo === "camino" ||
-                celda.dataset.tipo === "inicio" ||
-                celda.dataset.tipo === "fin"
-                    ? 0
-                    : 1
-            );
-            // Limpia rutas anteriores
-            if (
-                celda.dataset.tipo !== "inicio" &&
-                celda.dataset.tipo !== "fin" &&
-                celda.dataset.tipo !== "obstaculo" &&
-                celda.dataset.tipo !== "manzana"
-            ) {
-                celda.classList.remove("bg-yellow-300", "bg-yellow-100");
-                celda.classList.add("bg-white");
-                celda.dataset.tipo = "camino";
-                celda.innerHTML = "";
+
+    seleccionarCelda(e) {
+        if (!e.target.classList.contains("celda")) return;
+
+        if (this.modoSeleccion === "inicio") {
+            if (this.celdaInicio) {
+                this.celdaInicio.classList.remove("bg-blue-500");
+                this.celdaInicio.classList.add("bg-white");
+                this.celdaInicio.dataset.tipo = "camino";
+                this.celdaInicio.innerHTML = "";
             }
+            e.target.classList.remove("bg-white");
+            e.target.classList.add("bg-blue-500");
+            e.target.dataset.tipo = "inicio";
+            this.celdaInicio = e.target;
+            this.modoSeleccion = null;
+            actualizarIconosCeldas(this.matriz);
+        } else if (this.modoSeleccion === "fin") {
+            if (this.celdaFin) {
+                this.celdaFin.classList.remove("bg-purple-500");
+                this.celdaFin.classList.add("bg-white");
+                this.celdaFin.dataset.tipo = "camino";
+                this.celdaFin.innerHTML = "";
+            }
+            e.target.classList.remove("bg-white");
+            e.target.classList.add("bg-purple-500");
+            e.target.dataset.tipo = "fin";
+            this.celdaFin = e.target;
+            this.modoSeleccion = null;
+            actualizarIconosCeldas(this.matriz);
         }
-        grilla.push(fila);
     }
-    const coordsInicio = obtenerCoordenadasCelda(celdaInicio);
-    const coordsFin = obtenerCoordenadasCelda(celdaFin);
 
-    const algoritmo = new AEstrella(grilla);
-    const { camino, visitados } = algoritmo.buscarCamino(coordsInicio, coordsFin, grilla)
+    async ejecutarAEstrella() {
+        if (!this.celdaInicio || !this.celdaFin) {
+            alert("Seleccioná inicio y fin");
+            return;
+        }
 
-    
-    await pintarBusqueda(visitados, matriz);
-    if (!camino || camino.length === 0) {
-        alert("No se encontró camino");
-        return;
+        const filas = this.matriz.length;
+        const columnas = this.matriz[0].length;
+        const grilla = [];
+
+        for (let y = 0; y < filas; y++) {
+            const fila = [];
+            for (let x = 0; x < columnas; x++) {
+                const celda = this.matriz[y][x];
+                fila.push(
+                    celda.dataset.tipo === "camino" || celda.dataset.tipo === "inicio" || celda.dataset.tipo === "fin" ? 0 : 1
+                );
+
+                if (
+                    celda.dataset.tipo !== "inicio" &&
+                    celda.dataset.tipo !== "fin" &&
+                    celda.dataset.tipo !== "obstaculo" &&
+                    celda.dataset.tipo !== "manzana"
+                ) {
+                    celda.classList.remove("bg-yellow-300", "bg-yellow-100");
+                    celda.classList.add("bg-white");
+                    celda.dataset.tipo = "camino";
+                    celda.innerHTML = "";
+                }
+            }
+            grilla.push(fila);
+        }
+
+        const coordsInicio = this.obtenerCoordenadasCelda(this.celdaInicio);
+        const coordsFin = this.obtenerCoordenadasCelda(this.celdaFin);
+
+        const algoritmo = new AEstrella(grilla);
+        const { camino, visitados } = algoritmo.buscarCamino(coordsInicio, coordsFin, grilla);
+
+        await pintarBusqueda(visitados, this.matriz);
+        if (!camino || camino.length === 0) {
+            alert("No se encontró camino");
+            return;
+        }
+        await animarRuta(camino, this.matriz);
+        actualizarIconosCeldas(this.matriz);
     }
-    await animarRuta(camino, matriz);
-    actualizarIconosCeldas(matriz);
-});
 
-// Utilidad para obtener coordenadas de una celda a partir de su id
-function obtenerCoordenadasCelda(celda) {
-    const [_, x, y] = celda.id.split("-");
-    return { row: parseInt(y), col: parseInt(x) };
+    obtenerCoordenadasCelda(celda) {
+        const [_, x, y] = celda.id.split("-");
+        return { row: parseInt(y), col: parseInt(x) };
+    }
 }
-
-function limitarPan() {
-    const minX = mapaContenedor.offsetWidth - mapaZoom.offsetWidth * escala;
-    const minY = mapaContenedor.offsetHeight - mapaZoom.offsetHeight * escala;
-    posX = Math.min(0, Math.max(minX, posX));
-    posY = Math.min(0, Math.max(minY, posY));
-}
-
-
-
-

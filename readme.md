@@ -1,14 +1,16 @@
-# Visualizador de Algoritmo A* en JavaScript
+cd 
+# Visualizador de Algoritmo A* en JavaScript (Orientado a Clases)
 
-Este proyecto es una aplicación web interactiva que implementa y visualiza el algoritmo A* para encontrar el camino más corto en una cuadrícula. Permite experimentar con obstáculos, seleccionar inicio y fin, y observar paso a paso cómo el algoritmo explora y encuentra la ruta óptima.
+Este proyecto es una aplicación web interactiva que implementa y visualiza el algoritmo A* para encontrar el camino más corto en una cuadrícula. El código está completamente orientado a objetos, utilizando **clases** para la lógica del algoritmo, la visualización y el controlador de eventos. Permite experimentar con obstáculos, seleccionar inicio y fin, y observar paso a paso cómo el algoritmo explora y encuentra la ruta óptima.
 
 ---
+
 
 ## Tecnologías utilizadas
 
 - **HTML5**
 - **CSS3** (con utilidades de Tailwind)
-- **JavaScript** (modular, ES6)
+- **JavaScript** (modular, ES6, **orientado a clases**)
 - **Git y GitHub** (control de versiones)
 
 ---
@@ -27,17 +29,24 @@ Este proyecto es una aplicación web interactiva que implementa y visualiza el a
 
 ---
 
+
 ## Estructura del código
 
 - `index.html` — Estructura principal de la interfaz.
 - `style.css` — Estilos personalizados y ajustes de Tailwind.
-- `state.js` — Estado global compartido entre módulos.
-- `render.js` — Visualización y animaciones de la cuadrícula.
-- `pathfinding.js` — Lógica del algoritmo A* (A estrella).
-- `scripts.js` — Controlador de eventos y lógica de interacción.
+- `render.js` — Visualización y animaciones de la cuadrícula (**clase Render**).
+- `pathfinding.js` — Lógica del algoritmo A* (**clases Nodo y AEstrella**).
+- `scripts.js` — Controlador de eventos y lógica de interacción (**clase Scripts**).
 - `readme.md` — Este archivo.
 
 ---
+
+
+## Notas sobre la arquitectura orientada a clases
+
+- Todo el proyecto está implementado usando **clases** de JavaScript para encapsular la lógica, el estado y la interacción.
+- No se utiliza estado global externo ni variables sueltas: cada módulo gestiona su propio estado mediante instancias de clase.
+- Esto facilita la escalabilidad, el mantenimiento y la reutilización del código.
 
 ## Instalación y uso
 
