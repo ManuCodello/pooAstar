@@ -1,90 +1,84 @@
 
-
-import { modoSeleccion} from "../old/state";
+// render.js
 
 export class Render {
-    constructor( contenedorGrilla, filas, columnas) {
-        //propiedades para la grilla
+    constructor(contenedorGrilla, filas, columnas) {
+        // Propiedades de grilla
         this.contenedorGrilla = contenedorGrilla;
-		this.filas = filas;
-		this.columnas = columnas;
-		this.matriz = this.generarGrilla(); // la grilla queda como propiedad
-        //propiedades para el zoom y pan
-		this.escala = 1;
-		this.posX = 0;
-		this.posY = 0;
-		this.inicioX = 0;
-		this.inicioY = 0;
-        //propiedades para los obstaculos
-		this.arrastrando = false;
-		this.pintandoObstaculos = false;
-        //propiedades para decorar iconos
+        this.filas = filas;
+        this.columnas = columnas;
+        this.matriz = this.generarGrilla();
+
+        // Estado de interacción
+        this.modoSeleccion = null;
+        this.celdaInicio = null;
+        this.celdaFin = null;
+
+        // Zoom y pan
+        this.escala = 1;
+        this.posX = 0;
+        this.posY = 0;
+        this.inicioX = 0;
+        this.inicioY = 0;
+
+        // Interacción con mouse
+        this.arrastrando = false;
+        this.pintandoObstaculos = false;
+
+        // Emojis decorativos
         this.emojiFlecha = "⬆️";
         this.emojiPin = "📍";
         this.emojiObras = "🚧";
 
+        //
+        this.mapaZoom = document.getElementById("mapaZoom");
+        this.mapaContenedor = document.getElementById("mapaContenedor");
     }
 
-    generarGrilla () {
+    generarGrilla() {
         this.contenedorGrilla.innerHTML = "";
-            this.contenedorGrilla.style.gridTemplateColumns = `repeat(${this.columnas}, 32px)`;
-        
-            const matriz = [];
-        
-            for (let fila = 0; fila < this.filas; fila++) {
-                const filaCeldas = [];
-                for (let columna = 0; columna < this.columnas; columna++) {
-                    const celda = document.createElement("div");
-                    celda.className = "celda bg-white border border-gray-300 flex items-center justify-center";
-                    celda.id = `celda-${columna}-${fila}`;
-                    celda.dataset.tipo = "camino";
-                    celda.innerHTML = "";
-                    this.contenedorGrilla.appendChild(celda);
-                    filaCeldas.push(celda);
-                }
-                matriz.push(filaCeldas);
+        this.contenedorGrilla.style.gridTemplateColumns = `repeat(${this.columnas}, 32px)`;
+        const matriz = [];
+
+        for (let fila = 0; fila < this.filas; fila++) {
+            const filaCeldas = [];
+            for (let columna = 0; columna < this.columnas; columna++) {
+                const celda = document.createElement("div");
+                celda.className = "celda bg-white border border-gray-300 flex items-center justify-center";
+                celda.id = `celda-${columna}-${fila}`;
+                celda.dataset.tipo = "camino";
+                celda.innerHTML = "";
+                this.contenedorGrilla.appendChild(celda);
+                filaCeldas.push(celda);
             }
+            matriz.push(filaCeldas);
+        }
 
-
-        
-            this.reiniciarTransformacion();
-            return matriz;
+        this.reiniciarTransformacion();
+        return matriz;
     }
-    
-
-    // reiniciarTransformacion() {
-    //     this.escala = 1;
-    //     this.posX = 0;
-    //     this.posY = 0;
-    //     this.actualizarTransformacion();
-    // }
-
-    // actualizarTransformacion() {
-	// 	this.contenedorGrilla.style.transform = `translate(${this.posX}px, ${this.posY}px) scale(${this.escala})`;
-	// }
-
 
     generarManzanas() {
-    const tamanios = [
-        { ancho: 3, alto: 3 },
-        { ancho: 4, alto: 3 },
-        { ancho: 3, alto: 4 },
-        { ancho: 4, alto: 4 }
-    ];
-    for (let i = 1; i < this.filas - 2; i += 5) {
-        for (let j = 1; j < this.columnas - 2; j += 5) {
-            const { ancho, alto } = tamanios[Math.floor(Math.random() * tamanios.length)];
-            for (let x = i; x < i + alto && x < this.filas; x++) {
-                for (let y = j; y < j + ancho && y < this.columnas; y++) {
-                    const celda = this.matriz[x][y];
-                    celda.classList.remove("bg-white");
-                    celda.classList.add("bg-black");
-                    celda.dataset.tipo = "manzana";
-                    celda.innerHTML = "";
+        const tamanios = [
+            { ancho: 3, alto: 3 },
+            { ancho: 4, alto: 3 },
+            { ancho: 3, alto: 4 },
+            { ancho: 4, alto: 4 }
+        ];
+        for (let i = 1; i < this.filas - 2; i += 5) {
+            for (let j = 1; j < this.columnas - 2; j += 5) {
+                const { ancho, alto } = tamanios[Math.floor(Math.random() * tamanios.length)];
+                for (let x = i; x < i + alto && x < this.filas; x++) {
+                    for (let y = j; y < j + ancho && y < this.columnas; y++) {
+                        const celda = this.matriz[x][y];
+                        celda.classList.remove("bg-white");
+                        celda.classList.add("bg-black");
+                        celda.dataset.tipo = "manzana";
+                        celda.innerHTML = "";
+                    }
                 }
             }
         }
-    }
     }
 
     actualizarIconosCeldas() {
@@ -94,40 +88,39 @@ export class Render {
                 celda.innerHTML = "";
                 celda.classList.remove("bg-blue-500", "bg-purple-500", "bg-gray-700", "bg-gray-800", "bg-white");
                 if (celda.dataset.tipo === "inicio") {
-                    celda.innerHTML = emojiFlecha;
+                    celda.innerHTML = this.emojiFlecha;
                 } else if (celda.dataset.tipo === "fin") {
-                    celda.innerHTML = emojiPin;
+                    celda.innerHTML = this.emojiPin;
                 } else if (celda.dataset.tipo === "obstaculo") {
-                    celda.innerHTML = emojiObras;
+                    celda.innerHTML = this.emojiObras;
                 }
             }
         }
     }
 
-    //para pintar las celdas al apretar el boton de obstaculos cuando el mouse pasa por ahi
     agregarHoverObstaculo() {
-	this.contenedorGrilla.addEventListener("mouseover", (e) => {
-		if (
-			modoSeleccion === "obstaculo" &&
-			e.target.classList.contains("celda") &&
-			e.target.dataset.tipo !== "inicio" &&
-			e.target.dataset.tipo !== "fin"
-		) {
-			e.target.classList.add("bg-orange-300");
-		}
-	});
+        this.contenedorGrilla.addEventListener("mouseover", (e) => {
+            if (
+                this.modoSeleccion === "obstaculo" &&
+                e.target.classList.contains("celda") &&
+                e.target.dataset.tipo !== "inicio" &&
+                e.target.dataset.tipo !== "fin"
+            ) {
+                e.target.classList.add("bg-orange-300");
+            }
+        });
 
-	this.contenedorGrilla.addEventListener("mouseout", (e) => {
-		if (
-			modoSeleccion === "obstaculo" &&
-			e.target.classList.contains("celda") &&
-			e.target.dataset.tipo !== "inicio" &&
-			e.target.dataset.tipo !== "fin" &&
-			e.target.dataset.tipo !== "obstaculo"
-		) {
-			e.target.classList.remove("bg-orange-300");
-		}
-	});
+        this.contenedorGrilla.addEventListener("mouseout", (e) => {
+            if (
+                this.modoSeleccion === "obstaculo" &&
+                e.target.classList.contains("celda") &&
+                e.target.dataset.tipo !== "inicio" &&
+                e.target.dataset.tipo !== "fin" &&
+                e.target.dataset.tipo !== "obstaculo"
+            ) {
+                e.target.classList.remove("bg-orange-300");
+            }
+        });
     }
 
     async pintarBusqueda(visitados) {
@@ -142,17 +135,15 @@ export class Render {
                 celda.classList.remove("bg-white", "bg-green-300");
                 celda.classList.add("bg-blue-200");
                 celda.innerHTML = "";
-                await esperar(10);
+                await this.esperar(10);
             }
         }
     }
 
-    // Utilidad para animaciones (pausa)
     esperar(ms) {
         return new Promise(resolve => setTimeout(resolve, ms));
     }
 
-    
     async animarRuta(ruta) {
         for (const { row, col } of ruta) {
             const celda = this.matriz[row][col];
@@ -163,17 +154,18 @@ export class Render {
                 celda.classList.remove("bg-white", "bg-blue-200");
                 celda.classList.add("bg-green-300");
                 celda.innerHTML = "";
-                await esperar(30);
+                await this.esperar(30);
             }
         }
     }
 
-
+    // Métodos de zoom y pan (sin cambios)
+    // [... todo lo demás permanece igual ...]
     // *METODOS PARA ZOOM Y PAN ----------------------------
 
 
     inicializarZoomPan() {
-	    this.mapaZoom.addEventListener("mousedown", (e) => {
+	this.mapaZoom.addEventListener("mousedown", (e) => {
 		if (e.button === 2) {
 			this.arrastrando = true;
 			this.inicioX = e.clientX - this.posX;
@@ -182,7 +174,7 @@ export class Render {
 			return;
 		}
 		if (
-			modoSeleccion === "obstaculo" &&
+			this.modoSeleccion === "obstaculo" &&
 			e.button === 0 &&
 			e.target.classList.contains("celda")
 		) {
@@ -226,6 +218,7 @@ export class Render {
 		}
 	});
     }
+
 
     limitarPan() {
 	const anchoMapa = this.mapaZoom.offsetWidth * this.escala;
@@ -285,6 +278,4 @@ export class Render {
         const centroY = mapaContenedor.offsetHeight / 2;
         hacerZoomEnPunto(0.8, centroX, centroY);
     }
-
-
-}
+} 

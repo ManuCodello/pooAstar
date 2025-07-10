@@ -1,17 +1,9 @@
+// scripts
+
 // Clase controladora de toda la lógica y eventos
-import {
-    generarGrilla,
-    reiniciarTransformacion,
-    inicializarZoomPan,
-    generarManzanas,
-    hacerZoomMas,
-    hacerZoomMenos,
-    animarRuta,
-    pintarBusqueda,
-    actualizarIconosCeldas,
-    agregarHoverObstaculo
-} from '../old/renderold.js';
+
 import { AEstrella } from './pathfinding.js';
+import { Render } from './render.js';
 
 export class Scripts {
     constructor() {
@@ -28,27 +20,19 @@ export class Scripts {
         this.botonFin = document.getElementById("botonFin");
         this.pintandoObstaculos = false;
 
-        // Estado global ahora como propiedades de la clase
-        this.matriz = [];
-        this.modoSeleccion = null;
-        this.celdaInicio = null;
-        this.celdaFin = null;
+        this.render = null; // se instanciará en generarNuevaGrilla
 
         this.inicializarEventos();
-        inicializarZoomPan();
     }
 
     reiniciarGrilla() {
         this.contenedorGrilla.innerHTML = "";
-        reiniciarTransformacion();
-        this.matriz = [];
-        this.celdaInicio = null;
-        this.celdaFin = null;
+        if (this.render) this.render.reiniciarTransformacion();
+        this.render = null;
     }
 
     inicializarEventos() {
         this.botonReiniciar.addEventListener("click", () => this.reiniciarGrilla());
-
         this.botonGenerarGrilla.addEventListener("click", () => this.generarNuevaGrilla());
 
         [this.inputFilas, this.inputColumnas].forEach(input => {
@@ -59,20 +43,17 @@ export class Scripts {
             });
         });
 
-        this.botonZoomMas.addEventListener("click", hacerZoomMas);
-        this.botonZoomMenos.addEventListener("click", hacerZoomMenos);
+        this.botonZoomMas.addEventListener("click", () => this.render?.hacerZoomMas());
+        this.botonZoomMenos.addEventListener("click", () => this.render?.hacerZoomMenos());
 
-        this.botonInicio.addEventListener("click", () => { this.modoSeleccion = "inicio"; });
-        this.botonFin.addEventListener("click", () => { this.modoSeleccion = "fin"; });
-        this.botonObstaculo.addEventListener("click", () => { this.modoSeleccion = "obstaculo"; });
+        this.botonInicio.addEventListener("click", () => this.render.modoSeleccion = "inicio");
+        this.botonFin.addEventListener("click", () => this.render.modoSeleccion = "fin");
+        this.botonObstaculo.addEventListener("click", () => this.render.modoSeleccion = "obstaculo");
 
         this.contenedorGrilla.addEventListener("mousedown", (e) => this.iniciarPintadoObstaculo(e));
         document.addEventListener("mouseup", () => this.detenerPintadoObstaculo());
 
         this.contenedorGrilla.addEventListener("click", (e) => this.seleccionarCelda(e));
-
-        agregarHoverObstaculo(this.contenedorGrilla, this.matriz, () => this.modoSeleccion);
-
         this.botonEjecutarAEstrella.addEventListener("click", () => this.ejecutarAEstrella());
     }
 
@@ -86,15 +67,16 @@ export class Scripts {
         }
 
         this.reiniciarGrilla();
-        const nuevaMatriz = generarGrilla(filas, columnas, this.contenedorGrilla);
-        this.matriz = nuevaMatriz;
-        generarManzanas(nuevaMatriz, filas, columnas);
-        actualizarIconosCeldas(nuevaMatriz);
-        agregarHoverObstaculo(this.contenedorGrilla, nuevaMatriz, () => this.modoSeleccion);
+        this.render = new Render(this.contenedorGrilla, filas, columnas);
+        this.render.generarManzanas();
+        this.render.actualizarIconosCeldas();
+        this.render.agregarHoverObstaculo();
+        this.render.inicializarZoomPan();
     }
 
     iniciarPintadoObstaculo(e) {
-        if (this.modoSeleccion === "obstaculo" && e.button === 0 && e.target.classList.contains("celda")) {
+        if (!this.render) return;
+        if (this.render.modoSeleccion === "obstaculo" && e.button === 0 && e.target.classList.contains("celda")) {
             this.pintandoObstaculos = true;
             this.pintarObstaculo(e.target);
             this.contenedorGrilla.addEventListener("mousemove", this.moverMouseObstaculo);
@@ -107,12 +89,14 @@ export class Scripts {
     }
 
     moverMouseObstaculo = (e) => {
-        if (this.pintandoObstaculos && this.modoSeleccion === "obstaculo" && e.buttons === 1 && e.target.classList.contains("celda")) {
+        if (!this.render) return;
+        if (this.pintandoObstaculos && this.render.modoSeleccion === "obstaculo" && e.buttons === 1 && e.target.classList.contains("celda")) {
             this.pintarObstaculo(e.target);
         }
     }
 
     pintarObstaculo(celda) {
+        if (!this.render) return;
         if (
             celda.dataset.tipo !== "inicio" &&
             celda.dataset.tipo !== "fin" &&
@@ -121,56 +105,57 @@ export class Scripts {
             celda.classList.remove("bg-white", "bg-yellow-300", "bg-orange-300", "bg-gray-800");
             celda.dataset.tipo = "obstaculo";
             celda.innerHTML = "";
-            actualizarIconosCeldas(this.matriz);
+            this.render.actualizarIconosCeldas();
         }
     }
 
     seleccionarCelda(e) {
+        if (!this.render) return;
         if (!e.target.classList.contains("celda")) return;
 
-        if (this.modoSeleccion === "inicio") {
-            if (this.celdaInicio) {
-                this.celdaInicio.classList.remove("bg-blue-500");
-                this.celdaInicio.classList.add("bg-white");
-                this.celdaInicio.dataset.tipo = "camino";
-                this.celdaInicio.innerHTML = "";
+        if (this.render.modoSeleccion === "inicio") {
+            if (this.render.celdaInicio) {
+                this.render.celdaInicio.classList.remove("bg-blue-500");
+                this.render.celdaInicio.classList.add("bg-white");
+                this.render.celdaInicio.dataset.tipo = "camino";
+                this.render.celdaInicio.innerHTML = "";
             }
             e.target.classList.remove("bg-white");
             e.target.classList.add("bg-blue-500");
             e.target.dataset.tipo = "inicio";
-            this.celdaInicio = e.target;
-            this.modoSeleccion = null;
-            actualizarIconosCeldas(this.matriz);
-        } else if (this.modoSeleccion === "fin") {
-            if (this.celdaFin) {
-                this.celdaFin.classList.remove("bg-purple-500");
-                this.celdaFin.classList.add("bg-white");
-                this.celdaFin.dataset.tipo = "camino";
-                this.celdaFin.innerHTML = "";
+            this.render.celdaInicio = e.target;
+            this.render.modoSeleccion = null;
+            this.render.actualizarIconosCeldas();
+        } else if (this.render.modoSeleccion === "fin") {
+            if (this.render.celdaFin) {
+                this.render.celdaFin.classList.remove("bg-purple-500");
+                this.render.celdaFin.classList.add("bg-white");
+                this.render.celdaFin.dataset.tipo = "camino";
+                this.render.celdaFin.innerHTML = "";
             }
             e.target.classList.remove("bg-white");
             e.target.classList.add("bg-purple-500");
             e.target.dataset.tipo = "fin";
-            this.celdaFin = e.target;
-            this.modoSeleccion = null;
-            actualizarIconosCeldas(this.matriz);
+            this.render.celdaFin = e.target;
+            this.render.modoSeleccion = null;
+            this.render.actualizarIconosCeldas();
         }
     }
 
     async ejecutarAEstrella() {
-        if (!this.celdaInicio || !this.celdaFin) {
+        if (!this.render || !this.render.celdaInicio || !this.render.celdaFin) {
             alert("Seleccioná inicio y fin");
             return;
         }
 
-        const filas = this.matriz.length;
-        const columnas = this.matriz[0].length;
+        const filas = this.render.matriz.length;
+        const columnas = this.render.matriz[0].length;
         const grilla = [];
 
         for (let y = 0; y < filas; y++) {
             const fila = [];
             for (let x = 0; x < columnas; x++) {
-                const celda = this.matriz[y][x];
+                const celda = this.render.matriz[y][x];
                 fila.push(
                     celda.dataset.tipo === "camino" || celda.dataset.tipo === "inicio" || celda.dataset.tipo === "fin" ? 0 : 1
                 );
@@ -190,19 +175,19 @@ export class Scripts {
             grilla.push(fila);
         }
 
-        const coordsInicio = this.obtenerCoordenadasCelda(this.celdaInicio);
-        const coordsFin = this.obtenerCoordenadasCelda(this.celdaFin);
+        const coordsInicio = this.obtenerCoordenadasCelda(this.render.celdaInicio);
+        const coordsFin = this.obtenerCoordenadasCelda(this.render.celdaFin);
 
         const algoritmo = new AEstrella(grilla);
         const { camino, visitados } = algoritmo.buscarCamino(coordsInicio, coordsFin, grilla);
 
-        await pintarBusqueda(visitados, this.matriz);
+        await this.render.pintarBusqueda(visitados);
         if (!camino || camino.length === 0) {
             alert("No se encontró camino");
             return;
         }
-        await animarRuta(camino, this.matriz);
-        actualizarIconosCeldas(this.matriz);
+        await this.render.animarRuta(camino);
+        this.render.actualizarIconosCeldas();
     }
 
     obtenerCoordenadasCelda(celda) {
@@ -210,3 +195,7 @@ export class Scripts {
         return { row: parseInt(y), col: parseInt(x) };
     }
 }
+
+
+const app = new Scripts();
+

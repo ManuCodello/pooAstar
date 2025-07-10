@@ -1,20 +1,21 @@
-    // ✅ Toda la lógica del algoritmo A* (A estrella)
+//pathfinding.js
+// ✅ Toda la lógica del algoritmo A* (A estrella)
 
-    //creando clase nodo 
-    export class Nodo {
-        constructor (row, col, h, g, padre = null) {
-            this.row = row;
-		    this.col = col;
-		    this.g = g;               // Costo desde el inicio
-		    this.h = h;               // Estimación hasta el fin
-		    this.f = g + h;           // Costo total
-		    this.padre = padre; 
-        }
+//creando clase nodo 
+export class Nodo {
+	constructor (row, col, h, g, padre = null) {
+		this.row = row;
+		this.col = col;
+		this.g = g;               // Costo desde el inicio
+		this.h = h;               // Estimación hasta el fin
+		this.f = g + h;           // Costo total
+		this.padre = padre; 
+	}
 
-        get clave() {
-	        return `${this.row},${this.col}`;
-        }
-    }
+	get clave() {
+		return `${this.row},${this.col}`;
+	}
+}
 
 export class AEstrella {
 	constructor(grilla) {
