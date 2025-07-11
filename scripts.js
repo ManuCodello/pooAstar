@@ -46,9 +46,15 @@ export class Scripts {
         this.botonZoomMas.addEventListener("click", () => this.render?.hacerZoomMas());
         this.botonZoomMenos.addEventListener("click", () => this.render?.hacerZoomMenos());
 
-        this.botonInicio.addEventListener("click", () => this.render.modoSeleccion = "inicio");
-        this.botonFin.addEventListener("click", () => this.render.modoSeleccion = "fin");
-        this.botonObstaculo.addEventListener("click", () => this.render.modoSeleccion = "obstaculo");
+        this.botonInicio.addEventListener("click", () => {
+	        if (this.render) this.render.modoSeleccion = "inicio";
+        });
+        this.botonFin.addEventListener("click", () => {
+	        if (this.render) this.render.modoSeleccion = "fin";
+        });
+        this.botonObstaculo.addEventListener("click", () => {
+	        if (this.render) this.render.modoSeleccion = "obstaculo";
+        });
 
         this.contenedorGrilla.addEventListener("mousedown", (e) => this.iniciarPintadoObstaculo(e));
         document.addEventListener("mouseup", () => this.detenerPintadoObstaculo());

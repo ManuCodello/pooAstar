@@ -7,7 +7,6 @@ export class Render {
         this.contenedorGrilla = contenedorGrilla;
         this.filas = filas;
         this.columnas = columnas;
-        this.matriz = this.generarGrilla();
 
         // Estado de interacción
         this.modoSeleccion = null;
@@ -30,9 +29,13 @@ export class Render {
         this.emojiPin = "📍";
         this.emojiObras = "🚧";
 
-        //
+        // 🔥 Primero asigno los elementos del DOM
         this.mapaZoom = document.getElementById("mapaZoom");
         this.mapaContenedor = document.getElementById("mapaContenedor");
+
+        // 🧠 Luego sí genero la grilla
+        this.matriz = this.generarGrilla();
+
     }
 
     generarGrilla() {
@@ -159,8 +162,8 @@ export class Render {
         }
     }
 
-    // Métodos de zoom y pan (sin cambios)
-    // [... todo lo demás permanece igual ...]
+    // Métodos de zoom y pan 
+    // 
     // *METODOS PARA ZOOM Y PAN ----------------------------
 
 
@@ -268,14 +271,16 @@ export class Render {
 
 
     hacerZoomMas() {
-        const centroX = mapaContenedor.offsetWidth / 2;
-        const centroY = mapaContenedor.offsetHeight / 2;
-        hacerZoomEnPunto(1.2, centroX, centroY);
+        const centroX = this.mapaContenedor.offsetWidth / 2;
+        const centroY = this.mapaContenedor.offsetHeight / 2;
+        this.hacerZoomEnPunto(1.2, centroX, centroY);
     }
-    
+
     hacerZoomMenos() {
-        const centroX = mapaContenedor.offsetWidth / 2;
-        const centroY = mapaContenedor.offsetHeight / 2;
-        hacerZoomEnPunto(0.8, centroX, centroY);
+        const centroX = this.mapaContenedor.offsetWidth / 2;
+        const centroY = this.mapaContenedor.offsetHeight / 2;
+        this.hacerZoomEnPunto(0.8, centroX, centroY);
     }
+
+    
 } 
