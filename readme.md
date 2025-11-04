@@ -1,74 +1,94 @@
-cd 
-# Visualizador de Algoritmo A* en JavaScript (Orientado a Clases)
+# 🌟 pooAstar — Pathfinding Visualizer & Engine (C++ / Web)
 
-Este proyecto es una aplicación web interactiva que implementa y visualiza el algoritmo A* para encontrar el camino más corto en una cuadrícula. El código está completamente orientado a objetos, utilizando **clases** para la lógica del algoritmo, la visualización y el controlador de eventos. Permite experimentar con obstáculos, seleccionar inicio y fin, y observar paso a paso cómo el algoritmo explora y encuentra la ruta óptima.
-
----
-
-
-## Tecnologías utilizadas
-
-- **HTML5**
-- **CSS3** (con utilidades de Tailwind)
-- **JavaScript** (modular, ES6, **orientado a clases**)
-- **Git y GitHub** (control de versiones)
+## 📌 Overview  
+**pooAstar** is a dual-mode project combining a high-performance C++ engine with a web visualization interface. It showcases one of the most powerful path-finding algorithms — **A\*** (A-Star) — applied to grid-based maps.  
+You’ll see both the algorithmic engine (in C++) and an interactive front-end for visualization and experimentation.
 
 ---
 
-## Características principales
-
-- **Visualización interactiva** del algoritmo A* paso a paso.
-- **Selección de tamaño de la cuadrícula** (filas y columnas).
-- **Colocación de obstáculos** arrastrando el mouse.
-- **Selección de celda de inicio** (flecha) y **fin** (pin tipo Google Maps).
-- **Animación** de la búsqueda (nodos explorados en azul) y del camino encontrado (verde).
-- **Zoom y pan** sobre el mapa, con scroll horizontal y vertical.
-- **Modo de edición**: puedes alternar entre colocar inicio, fin u obstáculos.
-- **Reinicio rápido** de la cuadrícula.
-- **Código modular y comentado** en español.
+## 🔍 Core Features  
+- **Engine Mode (C++)** – Highly efficient implementation of A\*, suitable for large grids and performance measurement.  
+- **Web Visualization Mode (HTML/CSS/JS)** – Interactive map/grid where you can place start/end nodes, obstacles, adjust heuristics, watch the algorithm in action.  
+- Customizable grid dimensions, obstacle placement, heuristic selection (Manhattan, Euclidean), and animation controls.  
+- Performance statistics: number of nodes visited, path length, computation time.  
+- Clear modular structure separating algorithm logic, UI/UX, and utility code.
 
 ---
 
-
-## Estructura del código
-
-- `index.html` — Estructura principal de la interfaz.
-- `style.css` — Estilos personalizados y ajustes de Tailwind.
-- `render.js` — Visualización y animaciones de la cuadrícula (**clase Render**).
-- `pathfinding.js` — Lógica del algoritmo A* (**clases Nodo y AEstrella**).
-- `scripts.js` — Controlador de eventos y lógica de interacción (**clase Scripts**).
-- `readme.md` — Este archivo.
+## 🧠 Why It Matters  
+- Demonstrates mastery of **algorithm design** (A\*), including heuristics and path costs.  
+- Highlights ability to work in **C++ for performance-critical logic** and in the **web stack** for user interaction.  
+- Ideal portfolio project for roles involving game dev, simulations, robotics, mapping, or algorithm engineering.
 
 ---
 
+## 🗂 Project Structure  
 
-## Notas sobre la arquitectura orientada a clases
+```bash
+pooAstar/
+├── engine/                # C++ codebase
+│   ├── main.cpp           # Entry point: config, load map, run A*
+│   ├── astar.cpp          # A* algorithm implementation
+│   ├── astar.h            # Declarations and types
+│   ├── grid.cpp           # Grid representation, nodes, obstacles
+│   └── grid.h             # Grid types and utility functions
+├── web/                   # Visualization interface
+│   ├── index.html         # Main webpage
+│   ├── style.css          # Styles(s) & layout
+│   ├── script.js          # Visualization logic: render grid + algorithm steps
+│   └── assets/            # Icons, images, maybe map files
+├── README.md              # This file
+└── LICENSE                # MIT License
+```
+🛠 Build & Usage
+🔧 C++ Engine
+Navigate to engine/ directory.
 
-- Todo el proyecto está implementado usando **clases** de JavaScript para encapsular la lógica, el estado y la interacción.
-- No se utiliza estado global externo ni variables sueltas: cada módulo gestiona su propio estado mediante instancias de clase.
-- Esto facilita la escalabilidad, el mantenimiento y la reutilización del código.
+Compile (example using g++):
+```
+bash
+Copiar código
+g++ -std=c++11 -O2 main.cpp astar.cpp grid.cpp -o pooAstarEngine
+Run with a map or specify parameters:
+```
+```
+bash
+Copiar código
+./pooAstarEngine [map_file] [rows] [cols]  
+# e.g. ./pooAstarEngine sample_map.txt 50 50  
+The engine outputs: path length, nodes visited count, computation time.
+```
+🌐 Web Interface
+Open web/index.html in your browser.
 
-## Instalación y uso
+Use controls to set grid size, select heuristic (Manhattan vs Euclidean), place start/end and obstacles.
 
-1. **Clona o descarga** este repositorio.
-2. Abre el archivo `index.html` en tu navegador favorito.
-   - O usa una extensión como **Live Server** en VS Code para recargar automáticamente.
-3. ¡Listo! Ya puedes experimentar con el visualizador.
+Click Run to watch the algorithm animate and highlight its path and visited nodes.
 
----
+Use Reset to clear and try again with new configuration.
 
-## ¿Cómo usar?
+📊 What You’ll Learn
+Deep understanding of A* algorithm: heuristics, open/closed sets, cost tracking.
 
-1. **Elige el tamaño** de la cuadrícula (filas y columnas) y haz clic en "Generar Grid".
-2. Selecciona el modo:
-   - **Inicio**: haz clic en una celda para colocar la flecha de inicio.
-   - **Fin**: haz clic en una celda para colocar el pin de destino.
-   - **Obstáculo**: mantén presionado y arrastra el mouse para colocar varios obstáculos (🚧).
-3. Haz clic en **"Ejecutar A*"** para ver cómo el algoritmo busca y encuentra el camino.
-   - Los nodos explorados se pintan de azul.
-   - El camino final se pinta de verde.
-4. Usa los botones de **zoom** y mueve el mapa con el mouse (pan).
-5. Puedes **reiniciar** la cuadrícula en cualquier momento.
+Real-world C++ project structure: separating logic (astar.cpp) from data (grid.cpp/h).
 
----
+Front-end data visualization: how to animate algorithm steps, manage DOM/grid cells.
 
+Performance measurement and interpretation (e.g., nodes visited vs grid size).
+
+Full-stack mindset: bridging efficient engine and user interface.
+
+🚀 Future Enhancements
+Add support for weighted nodes and terrain costs (e.g., mud, water).
+
+Incorporate other path-finding algorithms (Dijkstra, BFS, DFS) for comparison.
+
+Export/Import of map configurations or scenarios.
+
+Integrate WebGL or Canvas for richer 3D or large-scale grid visualization.
+
+Add mobile responsiveness, touch-controls for the web version.
+
+👤 Author
+Manu Codello — Computer Science Student, Universidad Nacional de Asunción
+💡 Focused on algorithms, data structures, visualization, and building portfolio-grade projects.
